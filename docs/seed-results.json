@@ -1,0 +1,235 @@
+{
+  "runs": [
+    {
+      "at": "2026-09-11T08:52:34.345Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "aave-v3",
+          "ok": true,
+          "hash": "0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24"
+        },
+        {
+          "slug": "uniswap-v3",
+          "ok": true,
+          "hash": "0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6",
+          "seconds": 11,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6"
+        },
+        {
+          "slug": "lido",
+          "ok": true,
+          "hash": "0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd",
+          "seconds": 7,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd"
+        },
+        {
+          "slug": "compound-v3",
+          "ok": true,
+          "hash": "0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1",
+          "seconds": 32,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1"
+        },
+        {
+          "slug": "curve-dex",
+          "ok": true,
+          "hash": "0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23",
+          "seconds": 6,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23"
+        },
+        {
+          "slug": "makerdao",
+          "ok": true,
+          "hash": "0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065",
+          "seconds": 8,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065"
+        },
+        {
+          "slug": "pendle",
+          "ok": true,
+          "hash": "0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7",
+          "seconds": 19,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7"
+        },
+        {
+          "slug": "gmx",
+          "ok": true,
+          "hash": "0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f"
+        },
+        {
+          "slug": "stargate",
+          "ok": true,
+          "hash": "0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04"
+        },
+        {
+          "slug": "across",
+          "ok": true,
+          "hash": "0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa",
+          "seconds": 19,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa"
+        },
+        {
+          "slug": "rocket-pool",
+          "ok": true,
+          "hash": "0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92",
+          "seconds": 17,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92"
+        },
+        {
+          "slug": "eigenlayer",
+          "ok": true,
+          "hash": "0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4",
+          "seconds": 12,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 70,
+          "chain_diversity": 66,
+          "maturity": 95,
+          "momentum": 76,
+          "tvl_health": 45
+        },
+        "average_score": 71,
+        "balance_wei": 0,
+        "categories_tracked": 7,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 10,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 18,
+        "total_rejected": 24,
+        "total_requests": 22,
+        "verdicts": {
+          "HIGH_RISK": 0,
+          "MODERATE": 5,
+          "SAFE": 13,
+          "UNKNOWN": 0
+        }
+      }
+    }
+  ],
+  "latest": {
+    "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+    "at": "2026-09-11T08:52:34.359Z",
+    "results": [
+      {
+        "slug": "aave-v3",
+        "ok": true,
+        "hash": "0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24",
+        "seconds": 10,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24"
+      },
+      {
+        "slug": "uniswap-v3",
+        "ok": true,
+        "hash": "0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6",
+        "seconds": 11,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6"
+      },
+      {
+        "slug": "lido",
+        "ok": true,
+        "hash": "0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd",
+        "seconds": 7,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd"
+      },
+      {
+        "slug": "compound-v3",
+        "ok": true,
+        "hash": "0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1",
+        "seconds": 32,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1"
+      },
+      {
+        "slug": "curve-dex",
+        "ok": true,
+        "hash": "0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23",
+        "seconds": 6,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23"
+      },
+      {
+        "slug": "makerdao",
+        "ok": true,
+        "hash": "0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065",
+        "seconds": 8,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065"
+      },
+      {
+        "slug": "pendle",
+        "ok": true,
+        "hash": "0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7",
+        "seconds": 19,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7"
+      },
+      {
+        "slug": "gmx",
+        "ok": true,
+        "hash": "0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f",
+        "seconds": 10,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f"
+      },
+      {
+        "slug": "stargate",
+        "ok": true,
+        "hash": "0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04",
+        "seconds": 10,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04"
+      },
+      {
+        "slug": "across",
+        "ok": true,
+        "hash": "0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa",
+        "seconds": 19,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa"
+      },
+      {
+        "slug": "rocket-pool",
+        "ok": true,
+        "hash": "0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92",
+        "seconds": 17,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92"
+      },
+      {
+        "slug": "eigenlayer",
+        "ok": true,
+        "hash": "0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4",
+        "seconds": 12,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4"
+      }
+    ],
+    "stats": {
+      "average_dimensions": {
+        "category_risk": 70,
+        "chain_diversity": 66,
+        "maturity": 95,
+        "momentum": 76,
+        "tvl_health": 45
+      },
+      "average_score": 71,
+      "balance_wei": 0,
+      "categories_tracked": 7,
+      "fees_collected_wei": 0,
+      "paused": false,
+      "protocols_tracked": 10,
+      "refunds_owed_wei": 0,
+      "total_analyzed": 18,
+      "total_rejected": 24,
+      "total_requests": 22,
+      "verdicts": {
+        "HIGH_RISK": 0,
+        "MODERATE": 5,
+        "SAFE": 13,
+        "UNKNOWN": 0
+      }
+    }
+  }
+}

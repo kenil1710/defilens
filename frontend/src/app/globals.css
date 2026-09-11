@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/*
+ * DeFiLens — a ratings tearsheet, not a crypto dashboard.
+ *
+ * The nearest real-world object to what this product makes is a credit rating
+ * agency's issuer report: a verdict grade, a dimension breakdown, the evidence
+ * it was derived from, and a verification trail. That is where the visual
+ * language comes from — dense, numeric, left-aligned, authoritative — rather
+ * than from the gradient-and-glass vocabulary of most DeFi front ends.
+ *
+ * The palette is fixed by the brief and followed exactly.
+ */
+
+@theme {
+  /* ground */
+  --color-paper: #fafaf9;
+  --color-card: #ffffff;
+  --color-ink: #1c1917;
+  --color-ink-2: #44403c;
+  --color-ink-3: #78716c;
+  --color-ink-4: #a8a29e;
+  --color-rule: #e7e5e4;
+  --color-rule-2: #d6d3d1;
+  --color-wash: #f5f5f4;
+
+  /* verdicts — the grades */
+  --color-safe: #16a34a;
+  --color-safe-wash: #f0fdf4;
+  --color-safe-rule: #bbf7d0;
+  --color-moderate: #d97706;
+  --color-moderate-wash: #fffbeb;
+  --color-moderate-rule: #fde68a;
+  --color-risk: #dc2626;
+  --color-risk-wash: #fef2f2;
+  --color-risk-rule: #fecaca;
+  --color-unknown: #78716c;
+  --color-unknown-wash: #f5f5f4;
+  --color-unknown-rule: #e7e5e4;
+
+  /* the one accent */
+  --color-accent: #2563eb;
+  --color-accent-dark: #1d4ed8;
+  --color-accent-wash: #eff6ff;
+  --color-accent-rule: #bfdbfe;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every figure in this product is meant to be compared down a column, so
+   tabular figures are functional rather than stylistic. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* The tearsheet's tab: a verdict-coloured edge down the left of a rating, the
+   way a ledger tab marks a section. It is the one place colour is used
+   structurally rather than as an accent.
+ *
+ * Drawn as a PSEUDO-ELEMENT rather than an inset box-shadow. `box-shadow` is a
+ * single property: setting it here and again in `.card-raised` meant whichever
+ * rule came later silently won, and the tab vanished from every raised card —
+ * the one structural device in the design, invisible on the pages that matter
+ * most. A pseudo-element composes with any shadow. */
+.tab-safe, .tab-moderate, .tab-risk, .tab-unknown { position: relative; }
+.tab-safe::before, .tab-moderate::before, .tab-risk::before, .tab-unknown::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: inherit;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  pointer-events: none;
+}
+.tab-safe::before { background: var(--color-safe); }
+.tab-moderate::before { background: var(--color-moderate); }
+.tab-risk::before { background: var(--color-risk); }
+.tab-unknown::before { background: var(--color-unknown); }
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: 10px;
+}
+
+.card-raised {
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.10);
+}
+
+/* Focus that is always visible, on any ground. */
+:where(a, button, input, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: #dbeafe;
+  color: var(--color-ink);
+}
+
+/* One orchestrated entrance on the hero, and nothing else animates on load. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.rise { animation: rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* A meter's fill animates from zero ONLY when it first appears, because the
+   growth is the point: it shows the score being measured, not decoration. */
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.meter-fill {
+  transform-origin: left center;
+  animation: fill 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+table.ledger { border-collapse: separate; border-spacing: 0; }
+table.ledger th {
+  font-weight: 500;
+  color: var(--color-ink-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-rule-2);
+  padding: 0.625rem 0.75rem;
+  white-space: nowrap;
+}
+table.ledger td {
+  border-bottom: 1px solid var(--color-rule);
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+table.ledger tbody tr:last-child td { border-bottom: none; }
+table.ledger tbody tr:hover { background: var(--color-wash); }
