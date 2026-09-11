@@ -1,5 +1,5 @@
 {
-  "read_at": "2026-09-11T10:16:28.968Z",
+  "read_at": "2026-09-11T10:55:17.208Z",
   "network": "studiodev",
   "chain_id": 61997,
   "explorer": "https://explorer-studio-dev.genlayer.com/",
@@ -146,24 +146,24 @@
   },
   "stats": {
     "average_dimensions": {
-      "category_risk": 65,
-      "chain_diversity": 41,
-      "maturity": 79,
-      "momentum": 67,
+      "category_risk": 66,
+      "chain_diversity": 40,
+      "maturity": 77,
+      "momentum": 65,
       "tvl_health": 38
     },
-    "average_score": 59,
+    "average_score": 58,
     "balance_wei": 0,
     "categories_tracked": 12,
     "fees_collected_wei": 0,
     "paused": false,
-    "protocols_tracked": 23,
+    "protocols_tracked": 24,
     "refunds_owed_wei": 0,
-    "total_analyzed": 31,
+    "total_analyzed": 32,
     "total_rejected": 42,
-    "total_requests": 35,
+    "total_requests": 36,
     "verdicts": {
-      "HIGH_RISK": 6,
+      "HIGH_RISK": 7,
       "MODERATE": 11,
       "SAFE": 14,
       "UNKNOWN": 0
@@ -491,6 +491,20 @@
       "tvl_usd": 17000,
       "verdict": "HIGH_RISK",
       "worst_score": 20
+    },
+    {
+      "analysis_count": 1,
+      "assessment_id": 32,
+      "best_score": 25,
+      "category": "Dexs",
+      "first_analyzed": 1789123616,
+      "last_analyzed": 1789123616,
+      "name": "Sheriff V3",
+      "overall_score": 25,
+      "slug": "sheriff-v3",
+      "tvl_usd": 24700,
+      "verdict": "HIGH_RISK",
+      "worst_score": 25
     }
   ],
   "safest": [
@@ -792,6 +806,20 @@
     },
     {
       "analysis_count": 1,
+      "assessment_id": 32,
+      "best_score": 25,
+      "category": "Dexs",
+      "first_analyzed": 1789123616,
+      "last_analyzed": 1789123616,
+      "name": "Sheriff V3",
+      "overall_score": 25,
+      "slug": "sheriff-v3",
+      "tvl_usd": 24700,
+      "verdict": "HIGH_RISK",
+      "worst_score": 25
+    },
+    {
+      "analysis_count": 1,
       "assessment_id": 29,
       "best_score": 30,
       "category": "Yield Aggregator",
@@ -1041,23 +1069,64 @@
       "tvl_usd": 17300000000,
       "verdict": "SAFE",
       "worst_score": 85
-    },
-    {
-      "analysis_count": 2,
-      "assessment_id": 12,
-      "best_score": 85,
-      "category": "Liquid Staking",
-      "first_analyzed": 1789114791,
-      "last_analyzed": 1789115857,
-      "name": "Lido",
-      "overall_score": 85,
-      "slug": "lido",
-      "tvl_usd": 23900000000,
-      "verdict": "SAFE",
-      "worst_score": 85
     }
   ],
   "recent": [
+    {
+      "age_days": 67,
+      "analyst": "0xA3f7a1CBcc7f491FfbC859aE8b750330CB5406D6",
+      "analyzed_at": 1789123616,
+      "assessment_id": 32,
+      "audit_bonus": 0,
+      "audit_note": "",
+      "audit_status": "UNAUDITED",
+      "category": "Dexs",
+      "category_mapped": true,
+      "chain_count": 1,
+      "chains": [
+        "Robinhood Chain"
+      ],
+      "children": [],
+      "content_hash": "290:bd354729dde1c0fe",
+      "evidence": "{\"age_days\":67,\"audit\":0,\"cat_mapped\":1,\"catrisk\":6,\"chain_n\":1,\"chains\":0,\"first_day\":1783296000,\"has_history\":1,\"health\":2,\"health_pct\":10,\"is_parent\":0,\"maturity\":1,\"momentum\":0,\"momentum_off\":925,\"peak_sig\":230000,\"tvl_sig\":24700}",
+      "explorer_url": "https://defillama.com/protocol/sheriff-v3",
+      "fee_paid_wei": 0,
+      "first_tvl_day": 1783296000,
+      "found": true,
+      "has_tvl_history": true,
+      "kind": "child",
+      "labels": [
+        "deeply down",
+        "single chain",
+        "under three months",
+        "low-risk category",
+        "crashing"
+      ],
+      "name": "Sheriff V3",
+      "overall_score": 25,
+      "peak_tvl_usd": 230000,
+      "rubric_version": "1.0.0",
+      "scores": {
+        "category_risk": 85,
+        "chain_diversity": 0,
+        "maturity": 15,
+        "momentum": 0,
+        "tvl_health": 30
+      },
+      "seq": 1,
+      "slug": "sheriff-v3",
+      "tvl_change_30d_pct": -75,
+      "tvl_pct_of_peak": 10,
+      "tvl_usd": 24700,
+      "verdict": "HIGH_RISK",
+      "weights": {
+        "category_risk": 20,
+        "chain_diversity": 20,
+        "maturity": 20,
+        "momentum": 15,
+        "tvl_health": 25
+      }
+    },
     {
       "age_days": 59,
       "analyst": "0x844710eEc1B0Ab6C10b88617299d7fCA8e9ACAd5",
@@ -2188,65 +2257,6 @@
       "tvl_change_30d_pct": 0,
       "tvl_pct_of_peak": 5,
       "tvl_usd": 1270000000,
-      "verdict": "SAFE",
-      "weights": {
-        "category_risk": 20,
-        "chain_diversity": 20,
-        "maturity": 20,
-        "momentum": 15,
-        "tvl_health": 25
-      }
-    },
-    {
-      "age_days": 2092,
-      "analyst": "0x1Cb03CB0f7f7825cACD2e92775dE9744A54ab090",
-      "analyzed_at": 1789115857,
-      "assessment_id": 12,
-      "audit_bonus": 2,
-      "audit_note": "",
-      "audit_status": "PARTIAL",
-      "category": "Liquid Staking",
-      "category_mapped": true,
-      "chain_count": 5,
-      "chains": [
-        "Ethereum",
-        "Moonbeam",
-        "Moonriver",
-        "Solana",
-        "Terra"
-      ],
-      "children": [],
-      "content_hash": "321:90ad06870810ae4e",
-      "evidence": "{\"age_days\":2092,\"audit\":2,\"cat_mapped\":1,\"catrisk\":7,\"chain_n\":5,\"chains\":4,\"first_day\":1608336000,\"has_history\":1,\"health\":5,\"health_pct\":55,\"is_parent\":0,\"maturity\":7,\"momentum\":6,\"momentum_off\":1035,\"peak_sig\":42500000000,\"tvl_sig\":23900000000}",
-      "explorer_url": "https://defillama.com/protocol/lido",
-      "fee_paid_wei": 0,
-      "first_tvl_day": 1608336000,
-      "found": true,
-      "has_tvl_history": true,
-      "kind": "child",
-      "labels": [
-        "near peak",
-        "five chains",
-        "over three years",
-        "lowest-risk category",
-        "growing fast"
-      ],
-      "name": "Lido",
-      "overall_score": 85,
-      "peak_tvl_usd": 42500000000,
-      "rubric_version": "1.0.0",
-      "scores": {
-        "category_risk": 100,
-        "chain_diversity": 55,
-        "maturity": 100,
-        "momentum": 85,
-        "tvl_health": 70
-      },
-      "seq": 2,
-      "slug": "lido",
-      "tvl_change_30d_pct": 35,
-      "tvl_pct_of_peak": 55,
-      "tvl_usd": 23900000000,
       "verdict": "SAFE",
       "weights": {
         "category_risk": 20,
@@ -3687,6 +3697,61 @@
         "momentum": 15,
         "tvl_health": 25
       }
+    },
+    "sheriff-v3": {
+      "age_days": 67,
+      "analyst": "0xA3f7a1CBcc7f491FfbC859aE8b750330CB5406D6",
+      "analyzed_at": 1789123616,
+      "assessment_id": 32,
+      "audit_bonus": 0,
+      "audit_note": "",
+      "audit_status": "UNAUDITED",
+      "category": "Dexs",
+      "category_mapped": true,
+      "chain_count": 1,
+      "chains": [
+        "Robinhood Chain"
+      ],
+      "children": [],
+      "content_hash": "290:bd354729dde1c0fe",
+      "evidence": "{\"age_days\":67,\"audit\":0,\"cat_mapped\":1,\"catrisk\":6,\"chain_n\":1,\"chains\":0,\"first_day\":1783296000,\"has_history\":1,\"health\":2,\"health_pct\":10,\"is_parent\":0,\"maturity\":1,\"momentum\":0,\"momentum_off\":925,\"peak_sig\":230000,\"tvl_sig\":24700}",
+      "explorer_url": "https://defillama.com/protocol/sheriff-v3",
+      "fee_paid_wei": 0,
+      "first_tvl_day": 1783296000,
+      "found": true,
+      "has_tvl_history": true,
+      "kind": "child",
+      "labels": [
+        "deeply down",
+        "single chain",
+        "under three months",
+        "low-risk category",
+        "crashing"
+      ],
+      "name": "Sheriff V3",
+      "overall_score": 25,
+      "peak_tvl_usd": 230000,
+      "rubric_version": "1.0.0",
+      "scores": {
+        "category_risk": 85,
+        "chain_diversity": 0,
+        "maturity": 15,
+        "momentum": 0,
+        "tvl_health": 30
+      },
+      "seq": 1,
+      "slug": "sheriff-v3",
+      "tvl_change_30d_pct": -75,
+      "tvl_pct_of_peak": 10,
+      "tvl_usd": 24700,
+      "verdict": "HIGH_RISK",
+      "weights": {
+        "category_risk": 20,
+        "chain_diversity": 20,
+        "maturity": 20,
+        "momentum": 15,
+        "tvl_health": 25
+      }
     }
   },
   "verifications": {
@@ -4655,11 +4720,53 @@
       "slug": "swaphood-v3",
       "stored_rubric_version": "1.0.0",
       "verified": true
+    },
+    "sheriff-v3": {
+      "assessment_id": 32,
+      "differences": [],
+      "evidence": "{\"age_days\":67,\"audit\":0,\"cat_mapped\":1,\"catrisk\":6,\"chain_n\":1,\"chains\":0,\"first_day\":1783296000,\"has_history\":1,\"health\":2,\"health_pct\":10,\"is_parent\":0,\"maturity\":1,\"momentum\":0,\"momentum_off\":925,\"peak_sig\":230000,\"tvl_sig\":24700}",
+      "recomputed": {
+        "audit_bonus": 0,
+        "audit_status": "UNAUDITED",
+        "bands": {
+          "age_days": 67,
+          "category_mapped": true,
+          "chain_count": 1,
+          "first_tvl_day": 1783296000,
+          "has_tvl_history": true,
+          "is_parent": false,
+          "peak_tvl_usd": 230000,
+          "tvl_change_30d_pct": -75,
+          "tvl_pct_of_peak": 10,
+          "tvl_usd": 24700
+        },
+        "content_hash": "290:bd354729dde1c0fe",
+        "labels": [
+          "deeply down",
+          "single chain",
+          "under three months",
+          "low-risk category",
+          "crashing"
+        ],
+        "overall_score": 25,
+        "scores": {
+          "category_risk": 85,
+          "chain_diversity": 0,
+          "maturity": 15,
+          "momentum": 0,
+          "tvl_health": 30
+        },
+        "verdict": "HIGH_RISK"
+      },
+      "rubric_version": "1.0.0",
+      "slug": "sheriff-v3",
+      "stored_rubric_version": "1.0.0",
+      "verified": true
     }
   },
   "verification_summary": {
-    "verified": 23,
-    "of": 23
+    "verified": 24,
+    "of": 24
   },
   "consumer_state": {
     "address": "0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1",
@@ -4767,7 +4874,7 @@
     "checks": {
       "aave-v3": {
         "allowed": true,
-        "assessment_age_s": 5991,
+        "assessment_age_s": 8329,
         "assessment_id": 9,
         "content_hash": "438:1f368b405e049c8e",
         "max_assessment_age_s": 604800,
@@ -4779,7 +4886,7 @@
       },
       "uniswap-v3": {
         "allowed": true,
-        "assessment_age_s": 5974,
+        "assessment_age_s": 8300,
         "assessment_id": 10,
         "content_hash": "565:0bff88a391d619c5",
         "max_assessment_age_s": 604800,
@@ -4791,7 +4898,7 @@
       },
       "compound-v3": {
         "allowed": true,
-        "assessment_age_s": 5477,
+        "assessment_age_s": 7804,
         "assessment_id": 15,
         "content_hash": "368:3efa639c2d44adcd",
         "max_assessment_age_s": 604800,
@@ -4803,7 +4910,7 @@
       },
       "curve-dex": {
         "allowed": true,
-        "assessment_age_s": 5910,
+        "assessment_age_s": 8235,
         "assessment_id": 13,
         "content_hash": "524:563056f579fa5755",
         "max_assessment_age_s": 604800,
@@ -4815,7 +4922,7 @@
       },
       "lido": {
         "allowed": true,
-        "assessment_age_s": 5927,
+        "assessment_age_s": 8254,
         "assessment_id": 12,
         "content_hash": "321:90ad06870810ae4e",
         "max_assessment_age_s": 604800,
@@ -4827,7 +4934,7 @@
       },
       "gmx": {
         "allowed": true,
-        "assessment_age_s": 5969,
+        "assessment_age_s": 8297,
         "assessment_id": 11,
         "content_hash": "352:d7ad15881e42342b",
         "max_assessment_age_s": 604800,

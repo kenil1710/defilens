@@ -14,6 +14,7 @@ written on chain.
 | Offline tests | 330, all passing |
 | Contract audit | 86 checks, 0 failures — `bash tools/audit.sh` |
 | Site audit | all green — `node tools/audit_site.mjs` |
+| Claims audit | all green — `node tools/audit_claims.mjs` |
 
 ---
 
@@ -129,6 +130,28 @@ whether it still matches — years later, against the same pure functions.
 **Every stored record on chain recomputes exactly.** That is checked, record
 by record, by `node tools/audit_claims.mjs`, and the site exposes the same
 call as a button on every protocol page.
+
+## The site
+
+Six pages, light theme, mobile-first, no horizontal scroll at 390px.
+
+| | |
+|---|---|
+| `/` | What it is, why it can be trusted, and one worked example contrasting the strongest and weakest ratings currently on the oracle |
+| `/protocols` | Every rating as a card — score arc, verdict, TVL, category, chains — with search, verdict filters, category grouping and sorting |
+| `/protocol/[slug]` | The full tearsheet: animated gauge, five weighted dimensions, TVL history, chain badges, the evidence vector, and a button that recomputes the rating on chain |
+| `/analyze` | Autocomplete over every protocol DeFi Llama tracks, a preview of what the contract will make of the name, and first-run setup |
+| `/compare` | Two protocols on the same rubric, dimension by dimension, winner marked |
+| `/docs` | Getting started, methodology, the category table, an integration guide and a FAQ |
+
+Rating a protocol needs **no wallet** — Studio Dev is faucet-funded and analysis
+is free, so the site submits through a server-side relayer. The wallet control
+and the chain badge appear only on the pages where they mean something, never on
+the landing page. First-run setup adds the network, switches to it and funds an
+address through the Studio faucet, each step performing the action rather than
+printing instructions to follow by hand.
+
+Screenshots of every page, desktop and mobile, are in [`screenshots/`](screenshots/).
 
 ## Layout
 

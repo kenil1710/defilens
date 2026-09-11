@@ -10,7 +10,7 @@ const PAGES = [
   ["01-landing", "/"],
   ["02-protocols", "/protocols"],
   ["03-protocol-safe", "/protocol/morpho-blue"],
-  ["04-protocol-highrisk", "/protocol/swaphood-v3"],
+  ["04-protocol-highrisk", "/protocol/sheriff-v3"],
   ["05-analyze", "/analyze"],
   ["06-compare", "/compare"],
   ["07-docs", "/docs"],
