@@ -12,7 +12,8 @@ written on chain.
 | Oracle | [`0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc`](https://explorer-studio-dev.genlayer.com/) |
 | Consumer | [`0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1`](https://explorer-studio-dev.genlayer.com/) |
 | Offline tests | 330, all passing |
-| Audit | 67 checks, 0 failures — `bash tools/audit.sh` |
+| Contract audit | 86 checks, 0 failures — `bash tools/audit.sh` |
+| Site audit | all green — `node tools/audit_site.mjs` |
 
 ---
 
@@ -125,8 +126,9 @@ Every assessment stores the evidence it came from and the rubric version.
 `verify_assessment` recomputes the score from the stored vector and reports
 whether it still matches — years later, against the same pure functions.
 
-On the current chain state, **10 of 10 stored records recompute exactly**.
-The site exposes this on every protocol page.
+**Every stored record on chain recomputes exactly.** That is checked, record
+by record, by `node tools/audit_claims.mjs`, and the site exposes the same
+call as a button on every protocol page.
 
 ## Layout
 
@@ -139,7 +141,9 @@ docs/PROBE.md              what the probe found, with raw responses
 docs/evidence.json         live chain state
 test/test_logic.py         330 offline tests against a GenVM stub
 test/e2e.mjs               end-to-end against Studio Dev
-tools/audit.sh             67 mechanical checks
+tools/audit.sh             86 mechanical checks over both contracts
+tools/audit_site.mjs       browser checks — routes, 390px, console, links
+tools/audit_claims.mjs     every number this README asserts, checked live
 frontend/                  Next.js 16 site, six pages
 ```
 
@@ -149,14 +153,20 @@ frontend/                  Next.js 16 site, six pages
 # offline suite — no network, no chain
 cd test && python3 -m unittest test_logic
 
-# every mechanical check
+# every mechanical check over both contracts
 bash tools/audit.sh
+
+# every number this README claims, checked against the live chain
+node tools/audit_claims.mjs
 
 # end-to-end against Studio Dev (spends testnet funds)
 cd test && node e2e.mjs
 
 # the site
 cd frontend && npm install && npm run dev
+
+# the site, audited in a real browser (routes, 390px, console, links)
+node tools/audit_site.mjs http://localhost:3000
 ```
 
 ## What was measured, not assumed

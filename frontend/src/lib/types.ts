@@ -14,30 +14,35 @@ export type Dimension = (typeof DIMENSIONS)[number];
  *  a 55 on a 25%-weighted dimension moves the score more than a 55 on a 15% one. */
 export const DIMENSION_META: Record<
   Dimension,
-  { label: string; weight: number; asks: string }
+  { label: string; lower: string; weight: number; asks: string }
 > = {
   tvl_health: {
     label: "TVL health",
+    lower: "TVL health",
     weight: 25,
     asks: "How much of its all-time peak deposit base does the protocol still hold?",
   },
   chain_diversity: {
     label: "Chain diversity",
+    lower: "chain diversity",
     weight: 20,
     asks: "How many chains is it deployed on? One chain is one outage away from all of it.",
   },
   maturity: {
     label: "Maturity",
+    lower: "maturity",
     weight: 20,
     asks: "How long has it been holding deposits? Time is the only audit nobody can buy.",
   },
   category_risk: {
     label: "Category risk",
+    lower: "category risk",
     weight: 20,
     asks: "How much is at stake in its category? A bridge concentrates every chain's deposits behind one validator set.",
   },
   momentum: {
     label: "Momentum",
+    lower: "momentum",
     weight: 15,
     asks: "Which way has TVL moved over the last thirty days?",
   },

@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AnalyzeForm } from "@/components/analyze-form";
+import { Onboarding } from "@/components/onboarding";
 import { getProtocols, getStats } from "@/lib/oracle";
 import { VerdictBadge } from "@/components/verdict-badge";
 
 export const metadata: Metadata = {
-  title: "Rate a protocol — DeFiLens",
+  title: "Analyze a protocol — DeFiLens",
   description:
     "Name any protocol DeFi Llama tracks. Five validators fetch it independently and have to agree before a rating is stored.",
 };
 
-export const revalidate = 30;
+export const revalidate = 120;
 
 export default async function AnalyzePage({
   searchParams,
@@ -25,7 +26,7 @@ export default async function AnalyzePage({
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:gap-16">
         <div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Rate a protocol
+            Analyze a protocol
           </h1>
           <p className="text-ink-2 mt-3 max-w-[56ch] leading-relaxed">
             Five validators will each fetch DeFi Llama independently, reduce what
@@ -33,7 +34,11 @@ export default async function AnalyzePage({
             the same arithmetic. If any two disagree, nothing is written.
           </p>
 
-          <div className="mt-8">
+          <div className="mt-7">
+            <Onboarding compact />
+          </div>
+
+          <div className="mt-7">
             <AnalyzeForm initialSlug={slug ?? ""} />
           </div>
 

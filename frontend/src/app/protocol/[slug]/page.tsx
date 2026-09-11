@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAssessment, getHistory, getCategoryRisk, consumerCheck, consumerConfig } from "@/lib/oracle";
-import { VerdictBadge, ScoreMark } from "@/components/verdict-badge";
+import { VerdictBadge } from "@/components/verdict-badge";
+import { RiskGauge } from "@/components/risk-gauge";
 import { DimensionBars } from "@/components/dimension-bars";
 import { TvlChart } from "@/components/tvl-chart";
 import { VerifyPanel } from "@/components/verify-panel";
@@ -10,7 +11,7 @@ import { usd, usdExact, age, pct, when, ago, shortHash, verdictTone, VERDICT_COP
 import { DIMENSION_META, DIMENSIONS } from "@/lib/types";
 import { llamaUrl, addressUrl, ORACLE_ADDRESS, CONSUMER_ADDRESS } from "@/lib/genlayer";
 
-export const revalidate = 30;
+export const revalidate = 120;
 
 /*
  * Rendered ON DEMAND and then revalidated, not pre-rendered.
@@ -85,14 +86,10 @@ export default async function ProtocolPage({
             </p>
             <p className="text-ink-2 mt-4 max-w-[58ch] leading-relaxed">{copy.means}</p>
           </div>
-          <div className="text-right">
-            <ScoreMark score={a.overall_score} verdict={a.verdict} />
-            <div className="mt-2 flex justify-end">
-              <VerdictBadge verdict={a.verdict} size="lg" />
-            </div>
-            <p className="text-ink-4 mt-2 text-xs">
-              rated {ago(a.analyzed_at)}
-            </p>
+          <div className="flex shrink-0 flex-col items-center gap-2.5">
+            <RiskGauge score={a.overall_score} verdict={a.verdict} size={160} label={false} />
+            <VerdictBadge verdict={a.verdict} size="lg" />
+            <p className="text-ink-4 text-xs">rated {ago(a.analyzed_at)}</p>
           </div>
         </div>
 

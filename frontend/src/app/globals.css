@@ -157,3 +157,19 @@ table.ledger td {
 }
 table.ledger tbody tr:last-child td { border-bottom: none; }
 table.ledger tbody tr:hover { background: var(--color-wash); }
+
+/* The gauge sweep. Animated by shrinking the dash OFFSET from the full arc to
+   zero, so the stroke appears to be drawn from its start rather than fading in.
+   `--sweep` carries the target length in user units, set per instance. */
+@keyframes sweep {
+  from { stroke-dashoffset: calc(var(--sweep) * -1px); }
+  to { stroke-dashoffset: 0; }
+}
+.gauge-sweep {
+  animation: sweep 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 120ms;
+}
+
+/* A horizontal rule of scrolling is never acceptable: the brief pins 390px, and
+   one over-wide child anywhere silently breaks every page below it. */
+html, body { max-width: 100%; overflow-x: clip; }

@@ -215,7 +215,7 @@ export function AnalyzeForm({ initialSlug = "" }: { initialSlug?: string }) {
           disabled={blocked}
           className="bg-accent hover:bg-accent-dark disabled:bg-ink-4 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
         >
-          {running ? `Rating… ${elapsed}s` : "Rate this protocol"}
+          {running ? `Analyzing… ${elapsed}s` : "Analyze this protocol"}
         </button>
         {running && (
           <span className="text-ink-3 text-sm">
@@ -296,7 +296,7 @@ function ResultPanel({ result }: { result: Result }) {
       <div className="border-safe-rule bg-safe-wash rounded-lg border px-4 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-semibold">Rated in {result.seconds}s</p>
+            <p className="font-semibold">Analyzed in {result.seconds}s</p>
             <p className="text-ink-2 mt-1 text-sm">
               {String(r.name ?? result.slug)} scored{" "}
               <span className="tnum font-semibold">{String(r.overall_score ?? "—")}</span>

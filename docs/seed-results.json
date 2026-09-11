@@ -115,119 +115,447 @@
           "UNKNOWN": 0
         }
       }
+    },
+    {
+      "at": "2026-09-11T10:04:25.837Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "raft",
+          "ok": true,
+          "hash": "0x9637036d5c0ed8d5ec79f3d1fafe7b872c63c448af878077adb35a1b700e2a4d",
+          "seconds": 24,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x9637036d5c0ed8d5ec79f3d1fafe7b872c63c448af878077adb35a1b700e2a4d"
+        },
+        {
+          "slug": "vector-finance",
+          "ok": true,
+          "hash": "0xf9599e1d58789635562448d807a184414818c15dd1934dfbc15933cbe927d3fb",
+          "seconds": 20,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xf9599e1d58789635562448d807a184414818c15dd1934dfbc15933cbe927d3fb"
+        },
+        {
+          "slug": "struct-finance",
+          "ok": true,
+          "hash": "0x3ba7fce6dcce763fe5b3afca0937bfa89ee4a044f8fa5a597671e654714d779e",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3ba7fce6dcce763fe5b3afca0937bfa89ee4a044f8fa5a597671e654714d779e"
+        },
+        {
+          "slug": "stabilize",
+          "ok": true,
+          "hash": "0xb0d99830a2b192cb57ba558b5ce1f9b7cb0a3fe690ce6fcd7aa3585bc8db02a8",
+          "seconds": 29,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xb0d99830a2b192cb57ba558b5ce1f9b7cb0a3fe690ce6fcd7aa3585bc8db02a8"
+        },
+        {
+          "slug": "auctus",
+          "ok": true,
+          "hash": "0x25f4e1bf3e2c3b92269115ac74170ec3158118ecdd7394cfd3810397ec482c4c",
+          "seconds": 21,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x25f4e1bf3e2c3b92269115ac74170ec3158118ecdd7394cfd3810397ec482c4c"
+        },
+        {
+          "slug": "tidal-finance",
+          "ok": true,
+          "hash": "0x66431b06679ed2945e737036cb75eaf19b756e1484292f5069618220a233235f",
+          "seconds": 21,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x66431b06679ed2945e737036cb75eaf19b756e1484292f5069618220a233235f"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 68,
+          "chain_diversity": 51,
+          "maturity": 95,
+          "momentum": 75,
+          "tvl_health": 36
+        },
+        "average_score": 66,
+        "balance_wei": 0,
+        "categories_tracked": 10,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 17,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 25,
+        "total_rejected": 28,
+        "total_requests": 29,
+        "verdicts": {
+          "HIGH_RISK": 0,
+          "MODERATE": 11,
+          "SAFE": 14,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-11T10:04:39.977Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "raft",
+          "ok": true,
+          "hash": "0x76eee4bedd08cf84289bcbc8fdedc92f3aea4ad5152502af711ed67b184ba6e4",
+          "seconds": 35,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x76eee4bedd08cf84289bcbc8fdedc92f3aea4ad5152502af711ed67b184ba6e4"
+        },
+        {
+          "slug": "vector-finance",
+          "ok": true,
+          "hash": "0xb6cc993a54aa61ae4ee3a2058297ad3a4a2d5681da7bf68114586c7d07b6f121",
+          "seconds": 21,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xb6cc993a54aa61ae4ee3a2058297ad3a4a2d5681da7bf68114586c7d07b6f121"
+        },
+        {
+          "slug": "struct-finance",
+          "ok": true,
+          "hash": "0xa4b2ed73205970963b3850d3dd352bf03c0952d9f6c6073d0c0c632618afe971",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa4b2ed73205970963b3850d3dd352bf03c0952d9f6c6073d0c0c632618afe971"
+        },
+        {
+          "slug": "stabilize",
+          "ok": true,
+          "hash": "0xb0d99830a2b192cb57ba558b5ce1f9b7cb0a3fe690ce6fcd7aa3585bc8db02a8",
+          "seconds": 33,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xb0d99830a2b192cb57ba558b5ce1f9b7cb0a3fe690ce6fcd7aa3585bc8db02a8"
+        },
+        {
+          "slug": "auctus",
+          "ok": true,
+          "hash": "0xeaf862e5250fcf32eac3e14f5310920a37854bb62c44e1da5017561df36be769",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xeaf862e5250fcf32eac3e14f5310920a37854bb62c44e1da5017561df36be769"
+        },
+        {
+          "slug": "tidal-finance",
+          "ok": true,
+          "hash": "0x9f0d8214bfce98ad43ddeb15683cd8220afd8d818eb03484aae743e2e7fa1d3a",
+          "seconds": 31,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x9f0d8214bfce98ad43ddeb15683cd8220afd8d818eb03484aae743e2e7fa1d3a"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 68,
+          "chain_diversity": 51,
+          "maturity": 95,
+          "momentum": 75,
+          "tvl_health": 36
+        },
+        "average_score": 66,
+        "balance_wei": 0,
+        "categories_tracked": 10,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 17,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 25,
+        "total_rejected": 30,
+        "total_requests": 29,
+        "verdicts": {
+          "HIGH_RISK": 0,
+          "MODERATE": 11,
+          "SAFE": 14,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-11T10:05:39.270Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "katana-perps",
+          "ok": true,
+          "hash": "0x56fd2bf5f6f0dea294b810854c92181e4333228291e94a4c364736d8ef9fd6fc",
+          "seconds": 13,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x56fd2bf5f6f0dea294b810854c92181e4333228291e94a4c364736d8ef9fd6fc"
+        },
+        {
+          "slug": "predictstreet",
+          "ok": true,
+          "hash": "0x3a74b61027869d3134b5f3607fced5a2e73fb7edb564d044ebb492276284bfcb",
+          "seconds": 9,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3a74b61027869d3134b5f3607fced5a2e73fb7edb564d044ebb492276284bfcb"
+        },
+        {
+          "slug": "waterx",
+          "ok": true,
+          "hash": "0x87d48333f46cc647ee951d1891e9de02689b3679dfc355217102d3400945326a",
+          "seconds": 9,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x87d48333f46cc647ee951d1891e9de02689b3679dfc355217102d3400945326a"
+        },
+        {
+          "slug": "boar-finance",
+          "ok": true,
+          "hash": "0xa050c8ecd4d937bdda2dbfc29cc6cc6c1e6fe1418d72669c1ffd3324c3d83d1b",
+          "seconds": 5,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa050c8ecd4d937bdda2dbfc29cc6cc6c1e6fe1418d72669c1ffd3324c3d83d1b"
+        },
+        {
+          "slug": "oter-finance",
+          "ok": true,
+          "hash": "0x8c7ddf8e53263c534dfb3fe749d63e7197de605a80a5e087af2436a8115e8158",
+          "seconds": 9,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x8c7ddf8e53263c534dfb3fe749d63e7197de605a80a5e087af2436a8115e8158"
+        },
+        {
+          "slug": "swaphood-v3",
+          "ok": true,
+          "hash": "0xb18f6886e846f576799b811ffb1ab9160e1540e4618fe254b92b4de028838a45",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xb18f6886e846f576799b811ffb1ab9160e1540e4618fe254b92b4de028838a45"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 68,
+          "chain_diversity": 51,
+          "maturity": 95,
+          "momentum": 75,
+          "tvl_health": 36
+        },
+        "average_score": 66,
+        "balance_wei": 0,
+        "categories_tracked": 10,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 17,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 25,
+        "total_rejected": 35,
+        "total_requests": 29,
+        "verdicts": {
+          "HIGH_RISK": 0,
+          "MODERATE": 11,
+          "SAFE": 14,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-11T10:06:47.632Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "katana-perps",
+          "ok": true,
+          "hash": "0x829b9eb0616de64f68a75aa1859b3eaeeb5c9863bb18f6792ff4e48fbb24ffff",
+          "seconds": 7,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x829b9eb0616de64f68a75aa1859b3eaeeb5c9863bb18f6792ff4e48fbb24ffff"
+        },
+        {
+          "slug": "predictstreet",
+          "ok": true,
+          "hash": "0x21c319034b76433461855fa1b1036e60418b467c2484b904f30d92111132743c",
+          "seconds": 8,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x21c319034b76433461855fa1b1036e60418b467c2484b904f30d92111132743c"
+        },
+        {
+          "slug": "waterx",
+          "ok": true,
+          "hash": "0x45d42cfbed32fd2e238aebb8de4bcca211afb94fbb5ca31dc70011dd1df3d8dc",
+          "seconds": 6,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x45d42cfbed32fd2e238aebb8de4bcca211afb94fbb5ca31dc70011dd1df3d8dc"
+        },
+        {
+          "slug": "boar-finance",
+          "ok": true,
+          "hash": "0x3feccf4a356e4477d4b6c2b70e3a40b7411bcefcb25f79302da530a2229ea228",
+          "seconds": 6,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3feccf4a356e4477d4b6c2b70e3a40b7411bcefcb25f79302da530a2229ea228"
+        },
+        {
+          "slug": "oter-finance",
+          "ok": true,
+          "hash": "0x5299c92e256c0a3343c00a6d4468071691a899acc47ab4453ca8faba16e619fc",
+          "seconds": 6,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x5299c92e256c0a3343c00a6d4468071691a899acc47ab4453ca8faba16e619fc"
+        },
+        {
+          "slug": "swaphood-v3",
+          "ok": true,
+          "hash": "0x11b00093766bd6e265236eca659956bb960ef972061a56f6974085467a99f0fc",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x11b00093766bd6e265236eca659956bb960ef972061a56f6974085467a99f0fc"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 68,
+          "chain_diversity": 51,
+          "maturity": 95,
+          "momentum": 75,
+          "tvl_health": 36
+        },
+        "average_score": 66,
+        "balance_wei": 0,
+        "categories_tracked": 10,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 17,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 25,
+        "total_rejected": 41,
+        "total_requests": 29,
+        "verdicts": {
+          "HIGH_RISK": 0,
+          "MODERATE": 11,
+          "SAFE": 14,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-11T10:14:00.273Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "katana-perps",
+          "ok": true,
+          "hash": "0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975",
+          "seconds": 25,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975"
+        },
+        {
+          "slug": "predictstreet",
+          "ok": true,
+          "hash": "0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8",
+          "seconds": 18,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8"
+        },
+        {
+          "slug": "waterx",
+          "ok": true,
+          "hash": "0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809",
+          "seconds": 15,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809"
+        },
+        {
+          "slug": "boar-finance",
+          "ok": true,
+          "hash": "0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43",
+          "seconds": 15,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43"
+        },
+        {
+          "slug": "oter-finance",
+          "ok": true,
+          "hash": "0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0",
+          "seconds": 14,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0"
+        },
+        {
+          "slug": "swaphood-v3",
+          "ok": true,
+          "hash": "0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95",
+          "seconds": 14,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 65,
+          "chain_diversity": 41,
+          "maturity": 79,
+          "momentum": 67,
+          "tvl_health": 38
+        },
+        "average_score": 59,
+        "balance_wei": 0,
+        "categories_tracked": 12,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 23,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 31,
+        "total_rejected": 42,
+        "total_requests": 35,
+        "verdicts": {
+          "HIGH_RISK": 6,
+          "MODERATE": 11,
+          "SAFE": 14,
+          "UNKNOWN": 0
+        }
+      }
     }
   ],
   "latest": {
     "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
-    "at": "2026-09-11T08:52:34.359Z",
+    "at": "2026-09-11T10:14:00.325Z",
     "results": [
       {
-        "slug": "aave-v3",
+        "slug": "katana-perps",
         "ok": true,
-        "hash": "0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24",
-        "seconds": 10,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x550c7b30b943bed6b106c91c818d2b2be9bb7dfb919e15928230a9bb581e0e24"
+        "hash": "0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975",
+        "seconds": 25,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975"
       },
       {
-        "slug": "uniswap-v3",
+        "slug": "predictstreet",
         "ok": true,
-        "hash": "0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6",
-        "seconds": 11,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x7bc2d848b8b40ce51e76182efe1087be46273d343f010ce64e1c353b5b3d8ca6"
+        "hash": "0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8",
+        "seconds": 18,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8"
       },
       {
-        "slug": "lido",
+        "slug": "waterx",
         "ok": true,
-        "hash": "0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd",
-        "seconds": 7,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0d7c551989c492d04d2ca86ca9e6e88959d04e515447a3964e2ee674440e34bd"
+        "hash": "0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809",
+        "seconds": 15,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809"
       },
       {
-        "slug": "compound-v3",
+        "slug": "boar-finance",
         "ok": true,
-        "hash": "0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1",
-        "seconds": 32,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x62aa63df56d0aa744afb6304ae4e98f025926b094e25bcd9cdf81b2c88b717a1"
+        "hash": "0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43",
+        "seconds": 15,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43"
       },
       {
-        "slug": "curve-dex",
+        "slug": "oter-finance",
         "ok": true,
-        "hash": "0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23",
-        "seconds": 6,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc9c69f45a39bf6d5e0da1f77eb22d3259858c4acc6aabf5fa20f30a6d8b6da23"
+        "hash": "0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0",
+        "seconds": 14,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0"
       },
       {
-        "slug": "makerdao",
+        "slug": "swaphood-v3",
         "ok": true,
-        "hash": "0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065",
-        "seconds": 8,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0acf24f1586e736e84a4de565d3e67ab99d76497b7b9850da504eb6956a50065"
-      },
-      {
-        "slug": "pendle",
-        "ok": true,
-        "hash": "0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7",
-        "seconds": 19,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa0ce71969522b3d95c47dda3cfe3f26e8836056548ba9758365177ee144005b7"
-      },
-      {
-        "slug": "gmx",
-        "ok": true,
-        "hash": "0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f",
-        "seconds": 10,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x89f085be029e757b0d67aed69227d6dfeee2e0d19f4678a280ec080737c9628f"
-      },
-      {
-        "slug": "stargate",
-        "ok": true,
-        "hash": "0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04",
-        "seconds": 10,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd48706e41c8ab0b1b32050b2dd097f7f269dc290f3bbede57d272fe9310d5c04"
-      },
-      {
-        "slug": "across",
-        "ok": true,
-        "hash": "0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa",
-        "seconds": 19,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xeaf3e72bd5fc3d081fcff7419612707bf629ecae7afbd4a63d1668043e0215fa"
-      },
-      {
-        "slug": "rocket-pool",
-        "ok": true,
-        "hash": "0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92",
-        "seconds": 17,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd24117c0a80bbe7a9d31b6f59a1057e6402b3d3d360dba2850d3e61b98428d92"
-      },
-      {
-        "slug": "eigenlayer",
-        "ok": true,
-        "hash": "0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4",
-        "seconds": 12,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc88eb6e731b3548680326d5dd3510d8844d0ab4650c29573f57e9b08753fedb4"
+        "hash": "0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95",
+        "seconds": 14,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95"
       }
     ],
     "stats": {
       "average_dimensions": {
-        "category_risk": 70,
-        "chain_diversity": 66,
-        "maturity": 95,
-        "momentum": 76,
-        "tvl_health": 45
+        "category_risk": 65,
+        "chain_diversity": 41,
+        "maturity": 79,
+        "momentum": 67,
+        "tvl_health": 38
       },
-      "average_score": 71,
+      "average_score": 59,
       "balance_wei": 0,
-      "categories_tracked": 7,
+      "categories_tracked": 12,
       "fees_collected_wei": 0,
       "paused": false,
-      "protocols_tracked": 10,
+      "protocols_tracked": 23,
       "refunds_owed_wei": 0,
-      "total_analyzed": 18,
-      "total_rejected": 24,
-      "total_requests": 22,
+      "total_analyzed": 31,
+      "total_rejected": 42,
+      "total_requests": 35,
       "verdicts": {
-        "HIGH_RISK": 0,
-        "MODERATE": 5,
-        "SAFE": 13,
+        "HIGH_RISK": 6,
+        "MODERATE": 11,
+        "SAFE": 14,
         "UNKNOWN": 0
       }
     }

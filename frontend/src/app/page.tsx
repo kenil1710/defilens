@@ -1,359 +1,456 @@
 import Link from "next/link";
-import { getStats, getSafest, getRiskiest, getAssessment, getProtocols, getRecent } from "@/lib/oracle";
-import { RatingCard, RatingRow } from "@/components/rating-card";
+import { getStats, getSafest, getRiskiest, getAssessment } from "@/lib/oracle";
+import { HeroVisual } from "@/components/hero-visual";
 import { VerdictBadge } from "@/components/verdict-badge";
+import { RiskGauge } from "@/components/risk-gauge";
 import { DIMENSION_META, DIMENSIONS } from "@/lib/types";
-import type { Dimension } from "@/lib/types";
-import { usd } from "@/lib/format";
-import { ORACLE_ADDRESS, addressUrl } from "@/lib/genlayer";
-import type { Assessment } from "@/lib/types";
+import type { Assessment, Dimension } from "@/lib/types";
+import { usd, scoreTone } from "@/lib/format";
 
-export const revalidate = 30;
+export const revalidate = 120;
 
 export default async function Home() {
-  const [stats, safest, riskiest, protocols] = await Promise.all([
-    getStats(), getSafest(6), getRiskiest(6), getProtocols(40),
+  const [stats, safest, riskiest] = await Promise.all([
+    getStats(),
+    getSafest(6),
+    getRiskiest(6),
   ]);
 
-  // The hero is a REAL rating, live from the contract. A protocol at each end of
-  // the scale, because the contrast is the product: an oracle where everything
-  // scores safe is an oracle that measures nothing.
+  /*
+   * The hero and the worked example come from the SAME two reads.
+   *
+   * The example needs a protocol at each end of the scale, and the hero needs
+   * the strongest one — fetching those separately would spend four of the
+   * thirty reads a minute Studio allows to learn what two already answered.
+   */
   const bestSlug = safest[0]?.slug;
   const worstSlug = riskiest.find((p) => p.slug !== bestSlug)?.slug;
-  const [hero, foil] = await Promise.all([
+  const [best, worst] = await Promise.all([
     bestSlug ? getAssessment(bestSlug) : null,
     worstSlug ? getAssessment(worstSlug) : null,
   ]);
 
-  /*
-   * ONE call, not eight.
-   *
-   * `get_recent` returns whole assessments, so fetching each protocol
-   * separately here would spend eight of the thirty reads a minute that Studio
-   * allows, to learn what one read already answered. Duplicates are collapsed
-   * because a protocol rated twice appears twice in the feed and should appear
-   * once in a list of protocols.
-   */
-  const seen = new Set<string>();
-  const recentRatings = (await getRecent(16))
-    .filter((a) => (seen.has(a.slug) ? false : (seen.add(a.slug), true)))
-    .slice(0, 8);
-
   return (
     <>
-      <Hero stats={stats} hero={hero} foil={foil} />
+      <Hero hero={best} />
+      <Why />
       <HowItWorks />
-      <Dimensions />
-      <LiveRatings ratings={recentRatings} total={protocols.length} />
-      <ForContracts />
+      {best && worst && <Example best={best} worst={worst} />}
+      <SocialProof stats={stats} />
+      <FinalCta />
     </>
   );
 }
 
-function Hero({
-  stats, hero, foil,
-}: {
-  stats: Awaited<ReturnType<typeof getStats>>;
-  hero: Assessment | null;
-  foil: Assessment | null;
-}) {
+/* ─────────────────────────────────────────────────────────────── hero */
+
+function Hero({ hero }: { hero: Assessment | null }) {
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-14 pb-16 sm:px-6 sm:pt-20">
-      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:gap-16">
+    <section className="mx-auto max-w-6xl px-4 pt-14 pb-16 sm:px-6 sm:pt-20 sm:pb-20">
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-16">
         <div className="rise">
-          <h1 className="text-[2.75rem] leading-[1.05] font-bold tracking-tight sm:text-6xl">
+          <p className="text-ink-3 text-xs font-semibold tracking-wide uppercase">
+            On-chain risk ratings
+          </p>
+          <h1 className="mt-3 text-[2.75rem] leading-[1.04] font-bold tracking-tight sm:text-6xl">
             Know before
             <br />
             you deposit.
           </h1>
-          <p className="text-ink-2 mt-6 max-w-[52ch] text-lg leading-relaxed">
-            Name any DeFi protocol. Five GenLayer validators independently fetch
-            DeFi Llama&apos;s public data, score it across five dimensions, and
-            have to agree on every number before one of them is written on chain.
+          <p className="text-ink-2 mt-6 max-w-[54ch] text-lg leading-relaxed">
+            DeFiLens scores any DeFi protocol out of 100 from public data — how
+            much of its peak deposit base it still holds, how widely it is
+            deployed, how long it has survived, and which way money is moving.
           </p>
-          <p className="text-ink-3 mt-4 max-w-[52ch] leading-relaxed">
-            The rating is stored with the evidence it came from, so anyone can
-            recompute it — and any contract can read it before it moves money.
+          <p className="text-ink-3 mt-4 max-w-[54ch] leading-relaxed">
+            Five independent validators each fetch the data themselves and must
+            agree on every number before a rating is written on chain. The
+            evidence is stored with it, so anyone can recompute the score — and
+            any contract can read the verdict before it moves money.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/analyze"
-              className="bg-accent hover:bg-accent-dark rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors"
+              className="bg-accent hover:bg-accent-dark rounded-lg px-5 py-3 text-sm font-semibold text-white transition-colors"
             >
-              Rate a protocol
+              Analyze a protocol
             </Link>
             <Link
               href="/protocols"
-              className="border-rule-2 hover:bg-wash rounded-lg border bg-white px-5 py-2.5 text-sm font-semibold transition-colors"
+              className="border-rule-2 hover:bg-wash rounded-lg border bg-white px-5 py-3 text-sm font-semibold transition-colors"
             >
-              Browse {stats?.protocols_tracked ?? 0} ratings
+              Browse scored protocols
             </Link>
           </div>
-
-          {stats && (
-            <dl className="border-rule mt-10 grid max-w-lg grid-cols-2 gap-x-8 gap-y-5 border-t pt-6 sm:grid-cols-4">
-              <Stat label="Protocols" value={stats.protocols_tracked} />
-              <Stat label="Assessments" value={stats.total_analyzed} />
-              <Stat label="Average score" value={stats.average_score} />
-              <Stat label="Rated safe" value={stats.verdicts?.SAFE ?? 0} />
-            </dl>
-          )}
         </div>
 
-        <div className="rise space-y-4" style={{ animationDelay: "120ms" }}>
-          {hero ? (
-            <RatingCard a={hero} animate href={`/protocol/${hero.slug}`} />
-          ) : (
-            <EmptyHero />
-          )}
-          {foil && (
-            <Link
-              href={`/protocol/${foil.slug}`}
-              className="card hover:bg-wash block px-5 py-4 transition-colors"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{foil.name}</p>
-                  <p className="text-ink-3 tnum truncate text-xs">
-                    {foil.category} · {usd(foil.tvl_usd)} · {foil.chain_count}{" "}
-                    {foil.chain_count === 1 ? "chain" : "chains"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2.5">
-                  <VerdictBadge verdict={foil.verdict} size="sm" />
-                  <span className="tnum text-lg font-bold">{foil.overall_score}</span>
-                </div>
-              </div>
-              <p className="text-ink-3 mt-2.5 text-xs leading-relaxed">
-                Same rubric, same validators, a different answer. The weakest
-                dimension here is{" "}
-                <span className="text-ink-2 font-medium">
-                  {weakest(foil)}
-                </span>
-                .
-              </p>
-            </Link>
-          )}
-          <p className="text-ink-4 px-1 text-xs leading-relaxed">
-            Both ratings are read live from{" "}
-            <a href={addressUrl(ORACLE_ADDRESS)} target="_blank" rel="noreferrer"
-              className="hover:text-accent font-mono underline underline-offset-2">
-              {ORACLE_ADDRESS.slice(0, 10)}…
-            </a>{" "}
-            on GenLayer Studio Dev.
-          </p>
+        <div className="rise" style={{ animationDelay: "120ms" }}>
+          {hero ? <HeroVisual a={hero} /> : <HeroFallback />}
         </div>
       </div>
     </section>
   );
 }
 
-function weakest(a: Assessment): string {
-  let key: Dimension = DIMENSIONS[0];
-  let low = 101;
-  for (const d of DIMENSIONS) {
-    const v = Number(a.scores?.[d] ?? 0);
-    if (v < low) {
-      low = v;
-      key = d;
-    }
-  }
-  return `${DIMENSION_META[key].label.toLowerCase()} at ${low}`;
-}
-
-function Stat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div>
-      <dd className="tnum text-2xl font-bold tracking-tight">{value}</dd>
-      <dt className="text-ink-3 mt-0.5 text-xs">{label}</dt>
-    </div>
-  );
-}
-
-function EmptyHero() {
+/** Shown when no live rating is available — because nothing is rated yet, or
+ *  because the node is rate-limiting this caller. It must still look like the
+ *  product rather than like an error, and it must NOT assert which of those two
+ *  it is, since from here they are indistinguishable. */
+function HeroFallback() {
   return (
     <div className="card-raised px-6 py-10 text-center">
-      <p className="text-sm font-semibold">No ratings yet</p>
+      <RiskGauge score={0} verdict="UNKNOWN" size={168} label={false} animate={false} />
+      <p className="mt-4 text-sm font-semibold">No live rating to show</p>
       <p className="text-ink-3 mx-auto mt-2 max-w-[32ch] text-sm leading-relaxed">
-        The oracle is deployed and answering; nothing has been rated on it yet.
+        The oracle is deployed and answering. Put a protocol through it and its
+        rating appears here.
       </p>
       <Link
         href="/analyze"
         className="bg-accent hover:bg-accent-dark mt-5 inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white"
       >
-        Rate the first protocol
+        Analyze a protocol
       </Link>
     </div>
   );
 }
 
-/* A genuine sequence, so it is numbered. */
+/* ───────────────────────────────────────────────────────── why defilens */
+
+const WHY = [
+  {
+    title: "Trustless",
+    body: "No analyst, no committee, and no site operator decides what a protocol scores. Five validators fetch the data independently and have to agree on every figure — the vector, the identity, the hash. One node that disagrees writes nothing at all.",
+    icon: Shield,
+  },
+  {
+    title: "Multi-chain",
+    body: "Coverage is every protocol DeFi Llama tracks, across every chain it tracks them on — thousands of them, from single-chain farms to deployments spanning forty networks. Breadth of deployment is itself one of the five things scored.",
+    icon: Globe,
+  },
+  {
+    title: "Composable",
+    body: "A rating is a view call, not a webpage. A vault deciding where to route deposits can ask the oracle before it moves money and branch on the answer, rather than trusting a number a front end showed a human last week.",
+    icon: Plug,
+  },
+];
+
+function Why() {
+  return (
+    <section className="border-rule border-y bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Why DeFiLens?</h2>
+        <p className="text-ink-3 mt-2.5 max-w-[62ch] leading-relaxed">
+          Risk scores are easy to publish and hard to trust. These are the three
+          things that make this one different from a spreadsheet with a website
+          in front of it.
+        </p>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {WHY.map(({ title, body, icon: Icon }) => (
+            <article key={title} className="card flex flex-col px-5 py-5">
+              <span className="border-accent-rule bg-accent-wash flex size-10 items-center justify-center rounded-lg border">
+                <Icon />
+              </span>
+              <h3 className="mt-4 text-base font-semibold">{title}</h3>
+              <p className="text-ink-2 mt-2 text-sm leading-relaxed">{body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────────────── how it works */
+
 const STEPS = [
   {
-    title: "You name a protocol",
-    body: "A DeFi Llama slug — aave-v3, or just aave. Families resolve to their children; a name that does not exist comes back with the nearest ones that do.",
+    title: "Name a protocol",
+    body: "Type any protocol DeFi Llama tracks. Families resolve to their markets; a name that does not exist comes back with the nearest ones that do.",
+    icon: Cursor,
   },
   {
-    title: "Five validators fetch it independently",
-    body: "Each one pulls the protocol list and the protocol's TVL history straight from api.llama.fi, reduces them to sixteen integers, and scores those integers with the same arithmetic.",
+    title: "Validators fetch it",
+    body: "Five of them, independently, straight from api.llama.fi — no shared cache and no middleman that could feed them all the same wrong answer.",
+    icon: Nodes,
   },
   {
-    title: "They have to agree, exactly",
-    body: "Live figures are bucketed first — TVL to three significant figures, percentages to the nearest five — so honest nodes match byte for byte. Disagreement writes nothing at all.",
+    title: "They must agree",
+    body: "Each reduces the data to sixteen integers and scores them. Figures are bucketed first, so honest nodes match exactly. Disagreement writes nothing.",
+    icon: Check,
   },
   {
-    title: "The rating is stored with its evidence",
-    body: "Every stored number is recomputed from the agreed vector after consensus, never taken from the leader. verify_assessment replays the arithmetic on demand.",
+    title: "The rating is stored",
+    body: "Every stored number is recomputed from the agreed vector, never taken from the leader — with the evidence beside it, so it can be replayed later.",
+    icon: Ledger,
   },
 ];
 
 function HowItWorks() {
   return (
-    <section className="border-rule bg-white border-y">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 className="text-2xl font-bold tracking-tight">How a rating is made</h2>
-        <p className="text-ink-3 mt-2 max-w-[60ch] leading-relaxed">
-          The point of putting this on GenLayer is that no single party — including
-          whoever runs the site — gets to decide what a protocol scores.
-        </p>
-        <ol className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
-          {STEPS.map((step, i) => (
-            <li key={step.title} className="flex gap-4">
-              <span className="border-rule-2 text-ink-3 tnum mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
-                {i + 1}
+    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
+      <p className="text-ink-3 mt-2.5 max-w-[62ch] leading-relaxed">
+        Four steps, about thirty seconds end to end.
+      </p>
+
+      <ol className="mt-10 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+        {STEPS.map(({ title, body, icon: Icon }, i) => (
+          <li key={title} className="relative">
+            <div className="flex items-center gap-3">
+              <span className="border-rule-2 flex size-11 shrink-0 items-center justify-center rounded-xl border bg-white">
+                <Icon />
               </span>
-              <div>
-                <h3 className="font-semibold">{step.title}</h3>
-                <p className="text-ink-2 mt-1.5 max-w-[46ch] text-sm leading-relaxed">
-                  {step.body}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+              <span className="text-ink-4 tnum text-xs font-semibold">
+                Step {i + 1}
+              </span>
+            </div>
+            <h3 className="mt-3.5 font-semibold">{title}</h3>
+            <p className="text-ink-2 mt-1.5 max-w-[40ch] text-sm leading-relaxed">{body}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────── example */
+
+function Example({ best, worst }: { best: Assessment; worst: Assessment }) {
+  return (
+    <section className="border-rule border-y bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          The same rubric, two different answers
+        </h2>
+        <p className="text-ink-3 mt-2.5 max-w-[62ch] leading-relaxed">
+          Both of these went through identical arithmetic on data pulled the same
+          way. An oracle where everything scores well is an oracle that measures
+          nothing — so here is the top of the book next to the bottom of it.
+        </p>
+
+        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+          <ExampleCard a={best} note="Strongest rating currently on the oracle" />
+          <ExampleCard a={worst} note="Weakest rating currently on the oracle" />
+        </div>
+
+        <p className="text-ink-3 mt-6 max-w-[68ch] text-sm leading-relaxed">
+          The gap is not a matter of opinion. It is{" "}
+          <span className="text-ink font-medium">{gapSentence(best, worst)}</span>{" "}
+          — each one an integer function of figures both protocols publish.
+        </p>
       </div>
     </section>
   );
 }
 
-async function Dimensions() {
-  const stats = await getStats();
+function ExampleCard({ a, note }: { a: Assessment; note: string }) {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">What gets measured</h2>
-          <p className="text-ink-3 mt-2 max-w-[58ch] leading-relaxed">
-            Five dimensions, each bucketed 0–7 and weighted. Nothing here is a
-            judgement call — every bucket is an integer function of public data.
-          </p>
+    <article className="card flex flex-col gap-5 px-5 py-5 sm:flex-row sm:items-center sm:px-6">
+      <div className="shrink-0 self-center">
+        <RiskGauge score={a.overall_score} verdict={a.verdict} size={132} label={false} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-ink-4 text-[11px] font-medium tracking-wide uppercase">{note}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <h3 className="text-lg font-semibold">{a.name}</h3>
+          <VerdictBadge verdict={a.verdict} size="sm" />
         </div>
-        <Link href="/docs" className="text-accent hover:text-accent-dark text-sm font-semibold">
-          Read the full methodology
+        <p className="text-ink-3 tnum mt-1 text-xs">
+          {a.category} · {usd(a.tvl_usd)} TVL · {a.chain_count}{" "}
+          {a.chain_count === 1 ? "chain" : "chains"}
+        </p>
+
+        <dl className="mt-4 space-y-1.5">
+          {DIMENSIONS.map((key) => {
+            const v = Number(a.scores?.[key] ?? 0);
+            const tone = scoreTone(v);
+            return (
+              <div key={key} className="flex items-center gap-2.5">
+                <dt className="text-ink-2 w-24 shrink-0 text-[11px]">
+                  {DIMENSION_META[key].label}
+                </dt>
+                <dd className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="bg-wash h-1 min-w-0 flex-1 overflow-hidden rounded-full">
+                    <span
+                      className={`block h-full rounded-full ${tone.bar}`}
+                      style={{ width: `${Math.max(v, 2)}%` }}
+                    />
+                  </span>
+                  <span className={`tnum w-5 shrink-0 text-right text-[11px] font-semibold ${tone.fg}`}>
+                    {v}
+                  </span>
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+
+        <Link
+          href={`/protocol/${a.slug}`}
+          className="text-accent hover:text-accent-dark mt-4 inline-block text-sm font-semibold"
+        >
+          See the full breakdown →
         </Link>
       </div>
-
-      <div className="mt-8 overflow-x-auto">
-        <table className="ledger w-full min-w-[620px] text-sm">
-          <thead>
-            <tr>
-              <th className="w-40">Dimension</th>
-              <th className="w-16 text-right">Weight</th>
-              <th>What it asks</th>
-              <th className="w-24 text-right">Average</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DIMENSIONS.map((key) => {
-              const meta = DIMENSION_META[key];
-              const avg = stats?.average_dimensions?.[key];
-              return (
-                <tr key={key}>
-                  <td className="font-medium">{meta.label}</td>
-                  <td className="tnum text-ink-2 text-right">{meta.weight}%</td>
-                  <td className="text-ink-2 max-w-[40ch] leading-relaxed">{meta.asks}</td>
-                  <td className="tnum text-ink-3 text-right">
-                    {avg === undefined ? "\u2014" : avg}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="text-ink-3 mt-5 max-w-[68ch] text-sm leading-relaxed">
-        A language model is used in exactly one place: reading whether a
-        protocol&apos;s published audit evidence is substantive. It chooses between
-        two adjacent options that the deterministic code has already narrowed to,
-        and it is worth at most four points of a hundred.
-      </p>
-    </section>
+    </article>
   );
 }
 
-function LiveRatings({ ratings, total }: { ratings: Assessment[]; total: number }) {
-  if (ratings.length === 0) return null;
+/** Name the two dimensions that actually separate them, rather than asserting
+ *  that a gap exists. Computed, so it cannot drift from the data above it. */
+function gapSentence(a: Assessment, b: Assessment): string {
+  const gaps = DIMENSIONS.map((d) => ({
+    d,
+    gap: Number(a.scores?.[d] ?? 0) - Number(b.scores?.[d] ?? 0),
+  }))
+    .filter((g) => g.gap !== 0)
+    .sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap))
+    .slice(0, 2);
+  if (gaps.length === 0) return "an identical breakdown across all five dimensions";
+  const phrase = (g: { d: Dimension; gap: number }) =>
+    `${Math.abs(g.gap)} points of ${DIMENSION_META[g.d].lower}`;
+  return gaps.map(phrase).join(" and ");
+}
+
+/* ──────────────────────────────────────────────────────── social proof */
+
+function SocialProof({ stats }: { stats: Awaited<ReturnType<typeof getStats>> }) {
+  if (!stats) return null;
+  const { protocols_tracked: p, total_analyzed: n, verdicts } = stats;
+  const safe = verdicts?.SAFE ?? 0;
   return (
-    <section className="border-rule bg-white border-y">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">Rated so far</h2>
-          <Link href="/protocols" className="text-accent hover:text-accent-dark text-sm font-semibold">
-            All {total} protocols
+    <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <div className="border-rule bg-wash/60 rounded-xl border px-6 py-7 sm:px-8">
+        <p className="text-ink-2 max-w-[76ch] text-base leading-relaxed sm:text-lg">
+          <span className="text-ink font-semibold">
+            {p} protocol{p === 1 ? "" : "s"} scored
+          </span>{" "}
+          so far, across {n} assessment{n === 1 ? "" : "s"} — every one of them
+          written on chain after five validators independently agreed on the
+          figures, and {safe} of them currently rated safe. Each rating keeps the
+          evidence it was derived from, so none of these numbers has to be taken
+          on trust.
+        </p>
+        <p className="text-ink-3 mt-3 text-sm">
+          <Link href="/protocols" className="text-accent hover:text-accent-dark font-semibold">
+            Browse every rating
+          </Link>{" "}
+          or{" "}
+          <Link href="/docs" className="text-accent hover:text-accent-dark font-semibold">
+            read how the score is built
           </Link>
-        </div>
-        <div className="border-rule mt-6 overflow-hidden rounded-xl border">
-          {ratings.map((a) => (
-            <RatingRow key={a.slug} a={a} />
-          ))}
-        </div>
+          .
+        </p>
       </div>
     </section>
   );
 }
 
-function ForContracts() {
+/* ───────────────────────────────────────────────────────────── the ask */
+
+function FinalCta() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:gap-16">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            A rating a contract can act on
-          </h2>
-          <p className="text-ink-2 mt-3 max-w-[54ch] leading-relaxed">
-            The oracle is not a website with an API bolted on. Every rating is a
-            view call, so a yield aggregator deciding where to route deposits can
-            ask before it moves money — and get an answer it can branch on rather
-            than an exception it has to catch.
-          </p>
-          <p className="text-ink-3 mt-4 max-w-[54ch] leading-relaxed">
-            <span className="text-ink font-medium">DeFiConsumer</span> is deployed
-            alongside it as a worked example: an aggregator that refuses any
-            protocol rated high risk, any protocol nobody has rated, and any
-            rating older than its own staleness limit.
-          </p>
-          <Link href="/docs#integrate" className="text-accent hover:text-accent-dark mt-5 inline-block text-sm font-semibold">
-            Integration guide
+    <section className="mx-auto max-w-6xl px-4 pt-2 pb-20 sm:px-6">
+      <div className="border-rule rounded-xl border bg-white px-6 py-10 text-center sm:px-8 sm:py-12">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          Check a protocol before you trust it
+        </h2>
+        <p className="text-ink-2 mx-auto mt-3 max-w-[52ch] leading-relaxed">
+          Free on this testnet, and no wallet required — the site submits on your
+          behalf. A rating takes about thirty seconds.
+        </p>
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/analyze"
+            className="bg-accent hover:bg-accent-dark rounded-lg px-6 py-3 text-sm font-semibold text-white transition-colors"
+          >
+            Analyze a protocol
+          </Link>
+          <Link
+            href="/protocols"
+            className="border-rule-2 hover:bg-wash rounded-lg border bg-white px-6 py-3 text-sm font-semibold transition-colors"
+          >
+            Browse scored protocols
           </Link>
         </div>
-        <pre className="border-rule overflow-x-auto rounded-xl border bg-[#1c1917] p-5 font-mono text-[12.5px] leading-relaxed text-[#e7e5e4]">
-<span className="text-[#a8a29e]"># refuses HIGH_RISK, UNKNOWN and never-rated alike</span>{"\n"}
-<span className="text-[#93c5fd]">summary</span> = IDeFiLens(oracle).view().get_risk_summary(slug){"\n"}
-{"\n"}
-<span className="text-[#c4b5fd]">if</span> <span className="text-[#c4b5fd]">not</span> summary[<span className="text-[#86efac]">&quot;found&quot;</span>]:{"\n"}
-{"    "}<span className="text-[#c4b5fd]">return</span> self._refuse(slug, <span className="text-[#86efac]">&quot;nobody has rated this&quot;</span>){"\n"}
-<span className="text-[#c4b5fd]">if</span> summary[<span className="text-[#86efac]">&quot;verdict&quot;</span>] == <span className="text-[#86efac]">&quot;HIGH_RISK&quot;</span>:{"\n"}
-{"    "}<span className="text-[#c4b5fd]">return</span> self._refuse(slug, <span className="text-[#86efac]">&quot;DeFiLens rates this HIGH_RISK&quot;</span>){"\n"}
-<span className="text-[#c4b5fd]">if</span> summary[<span className="text-[#86efac]">&quot;overall_score&quot;</span>] &lt; self.min_score:{"\n"}
-{"    "}<span className="text-[#c4b5fd]">return</span> self._refuse(slug, <span className="text-[#86efac]">&quot;below our floor&quot;</span>){"\n"}
-{"\n"}
-<span className="text-[#a8a29e]"># the evidence that admitted this deposit, pinned</span>{"\n"}
-pos.assessment_id = u32(summary[<span className="text-[#86efac]">&quot;assessment_id&quot;</span>]){"\n"}
-pos.content_hash = <span className="text-[#93c5fd]">str</span>(summary[<span className="text-[#86efac]">&quot;content_hash&quot;</span>])
-        </pre>
       </div>
     </section>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────── icons
+ * Drawn inline: five small glyphs are not worth an icon dependency, and these
+ * inherit currentColor and need no network request.
+ */
+
+function Shield() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M10 2.5 3.75 5v4.6c0 3.6 2.5 6.6 6.25 7.9 3.75-1.3 6.25-4.3 6.25-7.9V5L10 2.5Z"
+        stroke="#2563eb" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="m7.4 9.9 1.9 1.9 3.4-3.6" stroke="#2563eb" strokeWidth="1.4"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Globe() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="7.25" stroke="#2563eb" strokeWidth="1.4" />
+      <path d="M2.75 10h14.5M10 2.75c1.9 2 2.9 4.6 2.9 7.25s-1 5.25-2.9 7.25c-1.9-2-2.9-4.6-2.9-7.25s1-5.25 2.9-7.25Z"
+        stroke="#2563eb" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function Plug() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M7.5 2.75v4M12.5 2.75v4" stroke="#2563eb" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M5 6.75h10v3a5 5 0 0 1-10 0v-3Z" stroke="#2563eb" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M10 14.75v2.5" stroke="#2563eb" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Cursor() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M4.5 3.25 15 9.4l-4.3 1.1-1.9 4.2L4.5 3.25Z" stroke="#1c1917"
+        strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Nodes() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="4" r="2" stroke="#1c1917" strokeWidth="1.3" />
+      <circle cx="4" cy="15" r="2" stroke="#1c1917" strokeWidth="1.3" />
+      <circle cx="16" cy="15" r="2" stroke="#1c1917" strokeWidth="1.3" />
+      <path d="M8.7 5.8 5.3 13.2M11.3 5.8l3.4 7.4M6 15h8" stroke="#1c1917" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function Check() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="7.25" stroke="#1c1917" strokeWidth="1.3" />
+      <path d="m6.6 10.2 2.3 2.3 4.5-4.8" stroke="#16a34a" strokeWidth="1.6"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Ledger() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="3.75" y="2.75" width="12.5" height="14.5" rx="1.5" stroke="#1c1917" strokeWidth="1.3" />
+      <path d="M6.75 7h6.5M6.75 10h6.5M6.75 13h4" stroke="#1c1917" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
   );
 }

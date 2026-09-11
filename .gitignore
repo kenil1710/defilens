@@ -17,3 +17,6 @@ HANDOVER.md
 .accounts.json
 .deployed.json
 *.tsbuildinfo
+tools/node_modules/
+tools/package.json
+tools/package-lock.json

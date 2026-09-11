@@ -29,7 +29,7 @@ import type {
 type Entry = { at: number; value: unknown };
 const memo = new Map<string, Entry>();
 const inflight = new Map<string, Promise<unknown>>();
-const MEMO_MS = 20_000;
+const MEMO_MS = 45_000;
 
 const call = async <T>(fn: string, args: unknown[] = []): Promise<T> => {
   const key = `${fn}:${JSON.stringify(args)}`;
@@ -58,11 +58,18 @@ const call = async <T>(fn: string, args: unknown[] = []): Promise<T> => {
 };
 
 /**
- * A short revalidation window rather than a long one, because the whole product
- * is a claim about freshness — a rating page that showed a day-old verdict
- * would be making exactly the mistake the oracle exists to prevent.
+ * Long enough to stay inside the node's budget, short enough to stay honest.
+ *
+ * Studio meters 30 reads a minute AND 500 an hour, per caller — and the hour is
+ * the one that bites: a page render costs several contract calls, so a 30s
+ * window on two index pages alone can spend the whole hourly allowance and
+ * leave real visitors looking at fallbacks. Two minutes is well inside it.
+ *
+ * Freshness is not lost by this. A rating only changes when somebody analyses a
+ * protocol, which is a deliberate act that takes half a minute — so the window
+ * is short relative to the thing it is caching.
  */
-const REVALIDATE = 30;
+const REVALIDATE = 120;
 
 async function cached<T>(fn: string, args: unknown[] = [], fallback: T): Promise<T> {
   try {
@@ -70,6 +77,22 @@ async function cached<T>(fn: string, args: unknown[] = [], fallback: T): Promise
   } catch (e) {
     console.error(`oracle.${fn} failed:`, (e as Error)?.message);
     return fallback;
+  }
+}
+
+/**
+ * The same read, but saying whether it actually succeeded.
+ *
+ * "The oracle did not answer" and "the oracle has nothing" are different facts
+ * and must not render as the same screen: a rate-limited minute that draws
+ * "Nothing rated yet" tells a visitor the product is empty when it is full.
+ */
+async function tryCall<T>(fn: string, args: unknown[] = []): Promise<{ ok: boolean; value: T | null }> {
+  try {
+    return { ok: true, value: await call<T>(fn, args) };
+  } catch (e) {
+    console.error(`oracle.${fn} failed:`, (e as Error)?.message);
+    return { ok: false, value: null };
   }
 }
 
@@ -86,6 +109,14 @@ export async function getProtocols(limit = 100): Promise<ProtocolSummary[]> {
     "get_protocols", [0, limit], { protocols: [] },
   );
   return out.protocols ?? [];
+}
+
+/** getProtocols, with the reachability of the oracle preserved. */
+export async function getProtocolsResult(
+  limit = 100,
+): Promise<{ ok: boolean; protocols: ProtocolSummary[] }> {
+  const { ok, value } = await tryCall<{ protocols: ProtocolSummary[] }>("get_protocols", [0, limit]);
+  return { ok, protocols: value?.protocols ?? [] };
 }
 
 export async function getAssessment(slug: string): Promise<Assessment | null> {

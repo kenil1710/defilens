@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Onboarding } from "@/components/onboarding";
+import { CATEGORY_BANDS, CATEGORY_DEFAULT } from "@/lib/rubric-categories";
 import Link from "next/link";
 import { getConfig, getStats } from "@/lib/oracle";
 import { DIMENSION_META, DIMENSIONS } from "@/lib/types";
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
     "How a DeFiLens rating is computed, what consensus binds, and how to read the oracle from a contract.",
 };
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 const LADDER_COPY: Record<string, { unit: string; rows: string[] }> = {
   tvl_health: {
@@ -48,6 +50,32 @@ export default async function DocsPage() {
             with fixed arithmetic, and stores the result only if five independent
             validators produced the same sixteen integers.
           </p>
+
+          <Section id="start" title="Getting started">
+            <p>
+              <strong>You do not need a wallet to use DeFiLens.</strong> Studio
+              Dev is a faucet-funded testnet and a rating costs nothing, so the
+              site submits through a shared relayer: type a protocol name on{" "}
+              <a href="/analyze" className="text-accent hover:text-accent-dark font-medium">
+                the analyze page
+              </a>{" "}
+              and press the button. A rating takes about thirty seconds.
+            </p>
+            <p>
+              You only need a wallet to call the oracle yourself — from a script,
+              from your own contract, or straight from the explorer. The panel
+              below adds the network and funds an address for you.
+            </p>
+            <div className="not-prose my-5">
+              <Onboarding />
+            </div>
+            <p>
+              Reads are free and need no funding at all:{" "}
+              <Code>get_risk_summary</Code>, <Code>is_safe</Code> and every other
+              view can be called by anyone, including from a contract, without
+              spending anything.
+            </p>
+          </Section>
 
           <Section id="data" title="Where the data comes from">
             <p>
@@ -253,6 +281,56 @@ IDeFiLens(ORACLE).view().require_safe("aave-v3")`}</Pre>
             </ul>
           </Section>
 
+          <Section id="categories" title="Supported categories">
+            <p>
+              Category risk carries <strong>20% of the score</strong>. Every
+              category DeFi Llama publishes is mapped to one of eight ordinals by
+              a single question: <em>how much of a depositor&apos;s money is
+              exposed to one contract, one oracle, or one validator set?</em>
+            </p>
+            <p>
+              A category that is not in this table scores the default of{" "}
+              <strong>{CATEGORY_DEFAULT}/7</strong> and is reported as{" "}
+              <Code>category_mapped: false</Code> — so a reader can see the 20%
+              came from a default rather than from a judgement about that
+              category.
+            </p>
+            <div className="not-prose mt-5 space-y-2.5">
+              {CATEGORY_BANDS.map((band) => (
+                <div key={band.ordinal} className="border-rule rounded-lg border bg-white px-4 py-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="text-sm font-semibold">
+                      <span className="tnum text-ink-3">{band.ordinal}/7</span>{" "}
+                      <span className="ml-1.5">{band.label}</span>
+                    </p>
+                    <p className="text-ink-3 max-w-[44ch] text-xs leading-relaxed">{band.why}</p>
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {band.categories.map((c) => (
+                      <span key={c} className="border-rule bg-wash text-ink-2 rounded border px-1.5 py-0.5 text-[11px]">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section id="faq" title="Questions">
+            {FAQ.map((item) => (
+              <details key={item.q} className="border-rule not-prose group border-b py-3 last:border-b-0">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 text-sm font-medium">
+                  {item.q}
+                  <span className="text-ink-4 shrink-0 transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <div className="text-ink-2 mt-2.5 max-w-[64ch] space-y-2 text-sm leading-relaxed">
+                  {item.a}
+                </div>
+              </details>
+            ))}
+          </Section>
+
           <Section id="deployment" title="Deployment">
             <dl className="not-prose grid gap-3 text-sm">
               <Deployed label="DeFiLens oracle" address={ORACLE_ADDRESS} />
@@ -302,6 +380,7 @@ IDeFiLens(ORACLE).view().require_safe("aave-v3")`}</Pre>
           <p className="text-ink-3 text-xs font-medium">On this page</p>
           <ul className="mt-2.5 space-y-1.5 text-sm">
             {[
+              ["start", "Getting started"],
               ["data", "Data source"],
               ["dimensions", "The five dimensions"],
               ["scoring", "Scoring"],
@@ -309,6 +388,8 @@ IDeFiLens(ORACLE).view().require_safe("aave-v3")`}</Pre>
               ["consensus", "Consensus"],
               ["integrate", "Integration"],
               ["limits", "Limits"],
+              ["categories", "Categories"],
+              ["faq", "Questions"],
               ["deployment", "Deployment"],
             ].map(([id, label]) => (
               <li key={id}>
@@ -323,6 +404,123 @@ IDeFiLens(ORACLE).view().require_safe("aave-v3")`}</Pre>
     </div>
   );
 }
+
+/** The questions a newcomer actually asks, answered without hedging. Each one
+ *  was a real point of confusion in the brief or the interface. */
+const FAQ: { q: string; a: React.ReactNode }[] = [
+  {
+    q: "Is a high score a guarantee that a protocol is safe?",
+    a: (
+      <>
+        <p>
+          No, and it is not intended as one. DeFiLens measures four things a
+          protocol cannot easily fake — how much of its peak deposit base it
+          still holds, how many chains it runs on, how long it has been holding
+          money, and which way TVL has moved — plus how much its category
+          structurally concentrates risk.
+        </p>
+        <p>
+          It does not read the code, and it cannot see an unexploited bug, a
+          malicious upgrade key, or an oracle about to be manipulated. A protocol
+          can score 90 and be drained tomorrow by something no public dataset
+          knew about.
+        </p>
+      </>
+    ),
+  },
+  {
+    q: "Why does a protocol I know is fine score UNKNOWN?",
+    a: (
+      <p>
+        UNKNOWN means DeFi Llama publishes no TVL history for it, so four of the
+        five dimensions have nothing to measure. It is deliberately{" "}
+        <strong>not</strong> the same claim as HIGH_RISK: reporting an absent
+        feed as high risk would defame a protocol for a gap in somebody
+        else&apos;s data. <Code>is_safe</Code> still returns false for it,
+        because &ldquo;we have never heard of it&rdquo; must not read the same as
+        &ldquo;we checked and it is fine&rdquo;.
+      </p>
+    ),
+  },
+  {
+    q: "What stops the site operator from faking a score?",
+    a: (
+      <p>
+        Nothing about the rating passes through this site. Five validators fetch
+        DeFi Llama independently and must agree on the whole feature vector, the
+        identity strings and the content hash before anything is written; the
+        stored numbers are then recomputed from the agreed vector rather than
+        taken from whichever node proposed them. Whoever runs this front end has
+        no more influence over a score than you do.
+      </p>
+    ),
+  },
+  {
+    q: "Two validators will read TVL seconds apart. How do they ever agree?",
+    a: (
+      <p>
+        The tolerance lives in the quantisation, not in the comparison. TVL is
+        rounded to three significant figures and percentages to the nearest five
+        before anything is compared, so two nodes reading a cache refresh apart
+        produce identical bytes — while a genuine move still changes the answer.
+        Comparison itself is exact equality, because a comparison with a
+        tolerance in it would mean two different accepted outputs for one
+        request, and then neither is &ldquo;the&rdquo; assessment.
+      </p>
+    ),
+  },
+  {
+    q: "Where is the language model, and how much can it move a score?",
+    a: (
+      <p>
+        One call, worth at most <strong>4 points out of 100</strong>, reading
+        whether a protocol&apos;s published audit evidence is substantive. It
+        never picks freely: deterministic code computes a bracket from DeFi
+        Llama&apos;s own audit count first, and where that bracket is one
+        ordinal wide the model is not called at all. An unreadable answer and an
+        unreachable model both fall back to the least generous option, so a model
+        failure can only ever cost a protocol points.
+      </p>
+    ),
+  },
+  {
+    q: "What does it cost, and what happens if the contract refuses?",
+    a: (
+      <p>
+        Nothing — the fee is zero on this testnet. The method is payable anyway
+        so the refund path is exercised rather than assumed, and every refusal
+        credits the full deposit back and returns{" "}
+        <Code>{"{ status: \"REJECTED\" }"}</Code> instead of reverting. A
+        payable method that reverts rolls back storage but not the incoming
+        value, which then sits in the contract unaccounted for.
+      </p>
+    ),
+  },
+  {
+    q: "Can I read this from my own contract?",
+    a: (
+      <p>
+        Yes — that is the point of putting it on chain. Every rating is a view
+        call, so a vault can ask before it moves money and branch on the answer.
+        See <a href="#integrate" className="text-accent hover:text-accent-dark font-medium">the integration guide</a>;{" "}
+        <Code>DeFiConsumer</Code> is deployed alongside the oracle as a working
+        example.
+      </p>
+    ),
+  },
+  {
+    q: "How current is a rating?",
+    a: (
+      <p>
+        Each one stores the moment it was made, and re-analysis appends rather
+        than edits — the oracle keeps the last six per protocol. A consumer that
+        cares about freshness should check the age itself:{" "}
+        <Code>DeFiConsumer</Code> refuses any assessment older than its own
+        staleness limit, which is the pattern to copy.
+      </p>
+    ),
+  },
+];
 
 function Section({
   id, title, children,

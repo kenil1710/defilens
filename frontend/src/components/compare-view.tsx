@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { VerdictBadge, ScoreMark } from "./verdict-badge";
-import { usd, age, pct, verdictTone, scoreTone } from "@/lib/format";
+import { usd, age, pct, verdictTone, scoreTone, VERDICT_COPY } from "@/lib/format";
 import { DIMENSION_META, DIMENSIONS } from "@/lib/types";
 import type { Assessment, Dimension, ProtocolSummary } from "@/lib/types";
 
@@ -53,9 +53,11 @@ export function CompareView({
       ) : (
         <>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <Header a={a} />
-            <Header a={b} />
+            <Header a={a} winner={a.overall_score > b.overall_score} />
+            <Header a={b} winner={b.overall_score > a.overall_score} />
           </div>
+
+          <VerdictCompare a={a} b={b} />
 
           <div className="border-rule mt-6 overflow-hidden rounded-xl border bg-white">
             {DIMENSIONS.map((key) => {
@@ -80,16 +82,24 @@ export function CompareView({
               );
             })}
             <div className="border-rule grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-t bg-[#fafaf9] px-4 py-4 sm:px-6">
-              <p className="tnum text-right text-2xl font-bold">{a.overall_score}</p>
+              <p className={`tnum text-right text-2xl font-bold ${
+                a.overall_score > b.overall_score ? "text-safe" : a.overall_score < b.overall_score ? "text-ink-3" : ""
+              }`}>
+                {a.overall_score}
+              </p>
               <p className="w-32 text-center text-xs font-semibold sm:w-44">Overall</p>
-              <p className="tnum text-2xl font-bold">{b.overall_score}</p>
+              <p className={`tnum text-2xl font-bold ${
+                b.overall_score > a.overall_score ? "text-safe" : b.overall_score < a.overall_score ? "text-ink-3" : ""
+              }`}>
+                {b.overall_score}
+              </p>
             </div>
           </div>
 
           {widest && (
             <p className="text-ink-2 mt-4 max-w-[70ch] text-sm leading-relaxed">
               The widest gap is{" "}
-              <span className="font-medium">{DIMENSION_META[widest.key].label.toLowerCase()}</span>
+              <span className="font-medium">{DIMENSION_META[widest.key].lower}</span>
               , {widest.gap} points apart — worth {DIMENSION_META[widest.key].weight}% of
               each score.{" "}
               {Number(a.scores[widest.key]) > Number(b.scores[widest.key]) ? a.name : b.name}{" "}
@@ -103,6 +113,47 @@ export function CompareView({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** The headline answer, in a sentence, before the reader works through five
+ *  dimension rows. A comparison whose conclusion is only implicit in a table is
+ *  a comparison the reader has to finish themselves. */
+function VerdictCompare({ a, b }: { a: Assessment; b: Assessment }) {
+  const tie = a.overall_score === b.overall_score;
+  const lead = a.overall_score >= b.overall_score ? a : b;
+  const trail = lead === a ? b : a;
+  const gap = Math.abs(a.overall_score - b.overall_score);
+  const sameVerdict = a.verdict === b.verdict;
+  return (
+    <div className="border-rule bg-wash/60 mt-4 rounded-xl border px-5 py-4">
+      <p className="text-ink-2 text-sm leading-relaxed">
+        {tie ? (
+          <>
+            <span className="text-ink font-semibold">{a.name}</span> and{" "}
+            <span className="text-ink font-semibold">{b.name}</span> score the same
+            overall — {a.overall_score}/100 each. The dimensions below are where
+            they actually differ.
+          </>
+        ) : (
+          <>
+            <span className="text-ink font-semibold">{lead.name}</span> rates{" "}
+            <span className="text-safe font-semibold">{gap} point{gap === 1 ? "" : "s"} higher</span>{" "}
+            than <span className="text-ink font-semibold">{trail.name}</span>
+            {sameVerdict ? (
+              <> — though both land in the same verdict band.</>
+            ) : (
+              <>
+                , and the two land in different bands:{" "}
+                <span className="font-medium">{VERDICT_COPY[lead.verdict]?.label ?? lead.verdict}</span>{" "}
+                against{" "}
+                <span className="font-medium">{VERDICT_COPY[trail.verdict]?.label ?? trail.verdict}</span>.
+              </>
+            )}
+          </>
+        )}
+      </p>
     </div>
   );
 }
@@ -133,10 +184,19 @@ function Picker({
   );
 }
 
-function Header({ a }: { a: Assessment }) {
+function Header({ a, winner }: { a: Assessment; winner: boolean }) {
   const tone = verdictTone(a.verdict);
   return (
-    <div className={`card ${tone.tab} px-5 py-4`}>
+    <div
+      className={`card ${tone.tab} relative px-5 py-4 ${
+        winner ? "ring-safe/40 shadow-[0_1px_2px_rgb(28_25_23/0.04),0_10px_28px_-16px_rgb(28_25_23/0.2)] ring-2" : ""
+      }`}
+    >
+      {winner && (
+        <span className="border-safe-rule bg-safe-wash text-safe absolute -top-2.5 left-4 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+          Higher rated
+        </span>
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link href={`/protocol/${a.slug}`} className="hover:text-accent truncate text-lg font-semibold">

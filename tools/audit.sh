@@ -336,7 +336,174 @@ grep -q "isinstance(v, bool)" "$LENS" \
   || bad "a boolean could be read as the integer 1"
 
 # ───────────────────────────────────── 12. the offline suite
-head_ "12. Tests"
+head_ "12. DeFiConsumer is as safe as the oracle (composability)"
+grep -q "def require_safe" "$LENS" && ok "require_safe exists" || bad "no require_safe"
+if python3 - <<'PY'
+import sys
+src = open("contracts/DeFiLens.py").read()
+i = src.index("def require_safe(")
+seg = src[i:src.index("\n    @", i + 10)]
+# It must RAISE on each of the three refusals, not return a falsy object.
+need = ['HIGH_RISK', 'UNKNOWN', 'has not been analysed']
+raises = seg.count("raise gl.vm.UserError")
+sys.exit(0 if all(n in seg for n in need) and raises >= 3 else 1)
+PY
+then ok "require_safe reverts on HIGH_RISK, UNKNOWN and never-analysed"
+else bad "require_safe does not revert on all three"; fi
+
+grep -q "IDeFiLens(self.oracle).view()" "$CONS" \
+  && ok "the consumer reads the oracle cross-contract" \
+  || bad "the consumer does not perform a cross-contract read"
+
+# The SAME two AST scans as sections 5 and 6, run against the consumer. A
+# guarantee that holds only in the contract somebody audited is not a guarantee.
+if python3 - <<'PY'
+import ast, sys
+src = open("contracts/DeFiConsumer.py").read()
+tree = ast.parse(src)
+bad_fns = []
+for node in ast.walk(tree):
+    if not isinstance(node, ast.FunctionDef):
+        continue
+    if not any(isinstance(d, ast.Attribute) and d.attr == "payable"
+               for d in node.decorator_list):
+        continue
+    seg = ast.get_source_segment(src, node) or ""
+    lines = seg.split("\n")
+    # Index of the first counter increment, and of the last refusal path.
+    counters = [i for i, l in enumerate(lines)
+                if "self.total_deposited = " in l or "self.next_id = " in l]
+    refusals = [i for i, l in enumerate(lines) if "return self._refuse(" in l]
+    if counters and refusals and min(counters) < max(refusals):
+        bad_fns.append(node.name)
+sys.exit(1 if bad_fns else 0)
+PY
+then ok "consumer: no counter moves before a path that can still refuse"
+else bad "consumer: a counter moves before a refusal"; fi
+
+if python3 - <<'PY'
+import ast, sys
+src = open("contracts/DeFiConsumer.py").read()
+tree = ast.parse(src)
+# A position, once written, is never edited outside the two methods that own
+# its lifecycle. Anything else is a state-after-freeze bug.
+allowed = {"deposit", "withdraw", "_open"}
+offenders = []
+for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name not in allowed:
+        for sub in ast.walk(node):
+            if isinstance(sub, ast.Assign):
+                for t in sub.targets:
+                    if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) \
+                            and t.value.id in ("pos", "rec"):
+                        offenders.append(f"{node.name}:{sub.lineno}")
+if offenders:
+    print("FAIL " + ",".join(offenders[:4]))
+    sys.exit(1)
+sys.exit(0)
+PY
+then ok "consumer: a written position is never mutated outside its lifecycle"
+else bad "consumer: a position is mutated after it was written"; fi
+
+if python3 - <<'PY'
+import ast, sys
+src = open("contracts/DeFiConsumer.py").read()
+tree = ast.parse(src)
+offenders = []
+for node in ast.walk(tree):
+    if not isinstance(node, ast.FunctionDef):
+        continue
+    if not any(isinstance(d, ast.Attribute) and d.attr == "payable"
+               for d in node.decorator_list):
+        continue
+    for sub in ast.walk(node):
+        if isinstance(sub, ast.Raise):
+            # A raise inside a nested def (a nondet closure) is fine.
+            owner = None
+            for cand in ast.walk(node):
+                if isinstance(cand, ast.FunctionDef) and cand is not node:
+                    if sub in list(ast.walk(cand)):
+                        owner = cand
+            if owner is None:
+                offenders.append(f"{node.name}:{sub.lineno}")
+sys.exit(1 if offenders else 0)
+PY
+then ok "consumer: no payable method raises"
+else bad "consumer: a payable method can revert, stranding the deposit"; fi
+
+# ──────────────────────────── 13. the leader is checked before consensus
+head_ "13. The coherence gate on the leader"
+grep -q "def _coherent" "$LENS" && ok "_coherent exists" || bad "no coherence gate"
+grep -q "_scores_match(payload.get(\"scores\"), _score(clean))" "$LENS" \
+  && ok "_coherent re-derives the leader's scores from its own vector" \
+  || bad "_coherent trusts the leader's arithmetic"
+grep -q "if not _coherent(" "$LENS" \
+  && ok "an incoherent leader is refused before the round can settle" \
+  || bad "_coherent is defined but never called"
+
+# ───────────────────────── 14. verify_assessment re-derives EVERY field
+head_ "14. verify_assessment re-derives every stored field"
+grep -q "def verify_assessment" "$LENS" && ok "verify_assessment exists" || bad "missing"
+if python3 - <<'PY'
+import sys
+src = open("contracts/DeFiLens.py").read()
+i = src.index("def verify_assessment(")
+seg = src[i:i + 6000]
+# It must recompute from the STORED evidence and diff, not re-read the record.
+need = ["_score(", "_bands(", "_digest(", "differences"]
+missing = [n for n in need if n not in seg]
+if missing:
+    print("missing " + ",".join(missing))
+    sys.exit(1)
+sys.exit(0)
+PY
+then ok "it recomputes scores, bands and the hash, and reports differences"
+else bad "verify_assessment does not re-derive every field"; fi
+
+# ──────────────────────────────────────────── 15. source hygiene
+head_ "15. Source hygiene"
+TODOS=$(grep -rnE "\b(TODO|FIXME|XXX|HACK)\b" "$LENS" "$CONS" frontend/src 2>/dev/null | wc -l | tr -d ' ')
+[ "$TODOS" = "0" ] && ok "no TODO/FIXME/XXX/HACK in contract or frontend source" \
+  || bad "$TODOS TODO/FIXME markers left in production code"
+
+LOGS=$(grep -rn "console\.log" frontend/src 2>/dev/null | wc -l | tr -d ' ')
+[ "$LOGS" = "0" ] && ok "no console.log in frontend source" \
+  || bad "$LOGS console.log calls in frontend source"
+
+# An address literal in the CONTRACT would be an oracle that cannot be pointed
+# anywhere else. The frontend's defaults are public deployment addresses and are
+# checked against deployments.json in section 17 instead.
+HARD=$(grep -nE "0x[0-9a-fA-F]{40}" "$LENS" "$CONS" | grep -v "^\s*#" | wc -l | tr -d ' ')
+[ "$HARD" = "0" ] && ok "no hardcoded addresses in either contract" \
+  || bad "$HARD hardcoded address literals in contract source"
+
+python3 tools/gen_categories.py --check >/dev/null 2>&1 \
+  && ok "the docs category table still matches the contract" \
+  || bad "frontend/src/lib/rubric-categories.ts is stale — run tools/gen_categories.py"
+
+# ──────────────────────────────────────── 16. repository hygiene
+head_ "16. Repository hygiene"
+if [ -d .git ] && git rev-parse HEAD >/dev/null 2>&1; then
+  AI=$(git log --all --format='%B%n%an%n%ae' | grep -icE "claude|anthropic|copilot|chatgpt|openai|generated with|co-authored-by: *(claude|ai)" || true)
+  [ "$AI" = "0" ] && ok "no AI attribution anywhere in git history" \
+    || bad "$AI AI references in commit messages or author fields"
+
+  TRACKED_AI=$(git ls-files | grep -icE "(^|/)(CLAUDE|AGENTS|HANDOVER)\.md$" || true)
+  [ "$TRACKED_AI" = "0" ] && ok "no agent instruction files tracked" \
+    || bad "$TRACKED_AI agent instruction files are committed"
+
+  SECRETS=$(git ls-files | grep -cE "\.env($|\.)|\.accounts\.json|\.vercel/" || true)
+  [ "$SECRETS" = "0" ] && ok "no env, key or .vercel files tracked" \
+    || bad "$SECRETS secret-bearing files are tracked"
+
+  KEYS=$(git grep -lE "RELAYER_PRIVATE_KEY *= *0x[0-9a-f]{64}" HEAD 2>/dev/null | wc -l | tr -d ' ')
+  [ "$KEYS" = "0" ] && ok "no private key literal in tracked content" \
+    || bad "a private key is committed"
+else
+  warn "no commits yet — repository checks skipped"
+fi
+
+head_ "17. Tests"
 TESTOUT=$(python3 test/test_logic.py 2>&1 | tail -3)
 COUNT=$(printf '%s' "$TESTOUT" | grep -oE "Ran [0-9]+ tests" | grep -oE "[0-9]+")
 if printf '%s' "$TESTOUT" | grep -q "^OK"; then
@@ -347,7 +514,7 @@ else
 fi
 
 # ───────────────────────────────────── 13. live deployment
-head_ "13. Live on studio-dev"
+head_ "18. Live on studio-dev"
 if [ -f deployments.json ]; then
   ORACLE=$(python3 -c "import json;print(json.load(open('deployments.json'))['deployments']['studiodev']['DeFiLens']['address'])" 2>/dev/null)
   CONSUMER=$(python3 -c "import json;print(json.load(open('deployments.json'))['deployments']['studiodev']['DeFiConsumer']['address'])" 2>/dev/null)
