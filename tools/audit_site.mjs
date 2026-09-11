@@ -63,6 +63,42 @@ try {
                      : bad(`an unrated slug answered ${res.status}, expected 404`);
 } catch (e) { bad("unknown slug threw", e.message); }
 
+/* ─── 2b. the SERVER-RENDERED header, before any JavaScript runs ───────────
+ *
+ * Playwright reads the DOM after hydration, so a header that is wrong in the
+ * prerendered HTML and corrects itself on hydration passes every browser check
+ * while still shipping a wallet prompt and a chain id on the landing page — to
+ * view-source, to the first paint, and to anything that does not run JS. This
+ * checks the bytes the server actually sends.
+ */
+head("2b. Server-rendered header (pre-hydration)");
+async function ssrHeader(path) {
+  const res = await fetch(BASE + path);
+  const html = await res.text();
+  const m = html.match(/<header\b[\s\S]*?<\/header>/);
+  return m ? m[0] : "";
+}
+{
+  const landing = await ssrHeader("/");
+  if (!landing) bad("no <header> in the landing page's HTML");
+  else {
+    /61997|Studio Dev/.test(landing)
+      ? bad("the landing page's PRERENDERED header carries a chain badge")
+      : ok("landing page HTML carries no chain badge before hydration");
+    /Connect|Get a wallet/.test(landing)
+      ? bad("the landing page's PRERENDERED header carries a wallet control")
+      : ok("landing page HTML carries no wallet control before hydration");
+  }
+  for (const r of ["/protocols", "/analyze", "/docs", "/compare"]) {
+    const h = await ssrHeader(r);
+    const hasNet = /Studio Dev/.test(h);
+    const hasWallet = /Connect|Get a wallet|0x/.test(h);
+    hasNet && hasWallet
+      ? ok(`${r} HTML carries both before hydration`)
+      : bad(`${r} PRERENDERED header is missing ${!hasWallet ? "the wallet control" : "the network badge"}`);
+  }
+}
+
 /* ──────────────────────────────── 3. DOM checks, which need a browser */
 let chromium = null;
 try { ({ chromium } = await import("playwright")); } catch { /* not installed */ }

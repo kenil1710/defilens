@@ -20,9 +20,15 @@ const NAV = [
  * The wallet and the network belong on the pages where they mean something —
  * everywhere a visitor can actually call the oracle.
  */
-export function SiteHeader() {
-  const pathname = usePathname();
-  const isLanding = pathname === "/";
+export function SiteHeader({ variant }: { variant: "marketing" | "app" }) {
+  // The variant arrives from the SERVER, via which route group rendered this.
+  // It was previously derived from usePathname(), which is not resolved during
+  // prerendering — so the static HTML for the landing page shipped the app
+  // header and only corrected itself once React hydrated.
+  const isLanding = variant === "marketing";
+  // usePathname is still used, but ONLY to mark the active nav item: a null
+  // pathname there costs a highlight for one frame and nothing else.
+  const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
 
   return (

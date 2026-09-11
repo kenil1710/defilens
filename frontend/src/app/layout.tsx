@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -34,11 +32,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${archivo.variable} ${jetbrains.variable} antialiased`}>
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-        </div>
+        {/* The header lives in the section layouts, not here: whether a page
+            offers a wallet is decided on the SERVER by which route group it is
+            in. Deciding it in the browser from usePathname() meant the
+            prerendered HTML carried the wrong header until hydration corrected
+            it — a wallet prompt and a chain id on the landing page, visible in
+            view-source, in a first paint, and to anything that does not run JS. */}
+        {children}
       </body>
     </html>
   );
