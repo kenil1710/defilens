@@ -173,7 +173,9 @@ export const getCategoryRisk = (category: string) =>
     score_contribution: number; weight_pct: number; default_when_unmapped: number;
   } | null>("get_category_risk", [category], null);
 
-/** The consumer contract's read surface — the composability demo. */
+/** The consumer contract's read surface — the composability demo.
+ *  It is an admission gate: it reads the oracle and records a decision. It has
+ *  no payable method and holds no balance, so there is no money surface here. */
 export async function consumerCheck(slug: string) {
   try {
     const client = readClient();
@@ -185,6 +187,7 @@ export async function consumerCheck(slug: string) {
       allowed: boolean; slug: string; verdict: string; score: number;
       min_score: number; assessment_age_s: number; max_assessment_age_s: number;
       assessment_id: number; content_hash: string; reason: string;
+      name: string; category: string; paused: boolean;
     };
   } catch {
     return null;
@@ -200,8 +203,8 @@ export async function consumerConfig() {
       }),
     )) as {
       owner: string; oracle: string; min_score: number;
-      max_assessment_age_s: number; paused: boolean; max_positions: number;
-      policy: string;
+      max_assessment_age_s: number; paused: boolean; max_tracked: number;
+      custody: false; policy: string;
     };
   } catch {
     return null;

@@ -242,10 +242,19 @@ IDeFiLens(ORACLE).view().require_safe("aave-v3")`}</Pre>
               <Link href={`/protocol`} className="text-accent hover:text-accent-dark">
                 DeFiConsumer
               </Link>{" "}
-              example does exactly this: it reads the summary, refuses high-risk,
-              unrated and stale ratings alike, credits the deposit back, and pins
-              the assessment id and content hash that admitted every deposit it
-              did accept.
+              example does exactly this: it reads the summary and refuses
+              high-risk, unrated and stale ratings alike, pinning the assessment
+              id and content hash behind every decision it records.
+            </p>
+            <p>
+              <strong>Keep the custody on your side.</strong> DeFiConsumer is an
+              admission gate, not a vault: it has no payable method, holds no
+              balance, and never takes custody of anything. It answers{" "}
+              <Code>allowed</Code> and writes down why; moving the money stays
+              with the integrator, where the withdrawal path already is. A demo
+              contract that accepts deposits has to answer for every wei it
+              takes, and a contract whose job is reading an oracle has no reason
+              to be in that position.
             </p>
             <p>
               <strong>Decide your own staleness rule.</strong> The oracle reports
@@ -492,7 +501,9 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
         credits the full deposit back and returns{" "}
         <Code>{"{ status: \"REJECTED\" }"}</Code> instead of reverting. A
         payable method that reverts rolls back storage but not the incoming
-        value, which then sits in the contract unaccounted for.
+        value, which then sits in the contract unaccounted for. An accepted call
+        refunds too: the fee is taken and every wei above it is credited back,
+        so nothing the oracle is sent can end up somewhere nobody can reach.
       </p>
     ),
   },
@@ -504,7 +515,8 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
         call, so a vault can ask before it moves money and branch on the answer.
         See <a href="#integrate" className="text-accent hover:text-accent-dark font-medium">the integration guide</a>;{" "}
         <Code>DeFiConsumer</Code> is deployed alongside the oracle as a working
-        example.
+        example of the read and the decision. It deliberately stops there — it
+        holds no funds, so the money movement stays in your contract.
       </p>
     ),
   },

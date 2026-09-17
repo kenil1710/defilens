@@ -8,9 +8,11 @@
  *   - five real validators independently fetch api.llama.fi and AGREE on a
  *     bucketed vector for a live protocol whose TVL is moving;
  *   - the stored record verifies against its own evidence ON CHAIN;
- *   - a rejected payable call refunds rather than confiscating, with real wei;
- *   - a real cross-contract read works: DeFiConsumer refuses a deposit into an
- *     unassessed protocol and accepts one into a scored protocol.
+ *   - a rejected payable call refunds rather than confiscating, with real wei,
+ *     and an ACCEPTED one refunds every wei above the fee — so nothing the
+ *     oracle takes in can be stranded in it;
+ *   - a real cross-contract read works: DeFiConsumer refuses an unassessed
+ *     protocol and admits a scored one, holding no money either way.
  *
  * Every write estimates its fee first. Nothing here is skipped on failure — a
  * failed check costs one red line and the run continues, so one flaky
@@ -242,12 +244,90 @@ console.log(`\n7. Rankings, feeds and stats`);
   evidence.riskiest = risk.protocols;
 }
 
+// ────────────────────────── 7b. nothing the oracle ACCEPTS can be stranded
+/*
+ * Section 4 proves a REFUSED payable call gives the money back. This proves the
+ * other half, which is the half that was missing from DeFiConsumer when it was
+ * rejected: that value attached to a call which SUCCEEDS comes back too.
+ *
+ * That was the exact shape of the bug. Refusals refunded, and every test said
+ * so; an accepted deposit went into a position nothing could read, and no test
+ * looked. Succeeding was the way to lose your money.
+ *
+ * The oracle's rule is that overpayment is never revenue — the fee is taken and
+ * the remainder is credited back. With the fee at zero the whole amount is the
+ * remainder, so an accepted analysis must owe the caller every wei it was sent.
+ *
+ * As in section 4, the assertion is on the LEDGER and on the posted internal
+ * transfer, not on a balance delta: Studio Dev queues `on="finalized"` value
+ * transfers and never executes them (docs/PROBE.md §7), so a balance check here
+ * would be asserting on the simulator rather than on the contract.
+ */
+{
+  console.log(`\n7b. Value attached to an ACCEPTED call comes back out`);
+  // A wallet the scoring loop did not reach: the per-wallet cooldown is 300s,
+  // and a throttled call returns REJECTED, which would quietly turn this into a
+  // test of the refusal path that section 4 already covers.
+  const payer = TARGETS.length < analysts.length ? analysts[TARGETS.length] : owner;
+  const slug = Object.keys(scored)[0] ?? TARGETS[0];
+  const value = 10n ** 16n;   // 0.01 GEN into a FREE method — all of it is owed back
+  const feeWei = BigInt(cfg.fee_wei ?? 0);
+
+  const r = await payer.send("analyze_protocol", [slug], value);
+  note(r.hash, `analyze_protocol(${slug}) with ${gen(value)} attached`, { settled: r.status });
+  ok("an analysis with value attached settles", r.ok === true, `${r.status} ${r.revertReason || r.failure || ""}`);
+  const body = r.returnReadable ? r.returned : null;
+  const accepted = Boolean(body && typeof body === "object" && body.status !== "REJECTED");
+  ok("it is ACCEPTED, not rejected", accepted, JSON.stringify(body ?? {}).slice(0, 200));
+
+  const owed = await owner.view("refund_of", [payer.account.address]).catch(() => null);
+  const owedWei = BigInt(owed?.refund_wei ?? 0);
+  ok("the accepted call credits back everything above the fee",
+     owedWei === value - feeWei, `${owedWei} owed, expected ${value - feeWei}`);
+
+  const claim = await payer.send("claim_refund", []);
+  note(claim.hash, "claim_refund after an accepted analysis", { settled: claim.status });
+  ok("claim_refund settles", claim.ok === true, `${claim.status} ${claim.revertReason || claim.failure || ""}`);
+  const queued = (claim.raw?.pending_transactions ?? [])
+    .filter((m) => String(m.address).toLowerCase() === payer.account.address.toLowerCase());
+  ok("the claim posts an internal transfer to the caller", queued.length === 1,
+     JSON.stringify(claim.raw?.pending_transactions ?? []).slice(0, 300));
+  if (queued.length === 1) {
+    ok("for the full amount that was owed", String(queued[0].value) === String(owedWei),
+       `${queued[0].value} vs ${owedWei}`);
+  }
+  await sleep(4000);
+  const after = await owner.view("refund_of", [payer.account.address]).catch(() => null);
+  ok("nothing is still owed once it is claimed", BigInt(after?.refund_wei ?? -1n) === 0n, JSON.stringify(after));
+
+  // The ledger identity, read off the live contract: everything it holds is
+  // either a refund somebody can claim or fee revenue the owner can withdraw.
+  // A third bucket would be money nobody can reach.
+  const st = await owner.view("get_stats").catch(() => null);
+  if (st && st.balance_wei !== undefined) {
+    const held = BigInt(st.balance_wei);
+    const owedAll = BigInt(st.refunds_owed_wei ?? 0);
+    ok("the oracle owes no more than it holds", owedAll <= held, `${owedAll} owed of ${held} held`);
+    evidence.ledger = { held: String(held), refunds_owed: String(owedAll),
+                        owner_withdrawable: String(held - owedAll) };
+  }
+  evidence.accepted_refund = {
+    slug, value: String(value), fee_wei: String(feeWei), owed: String(owedWei),
+    queued_messages: claim.raw?.pending_transactions ?? [],
+    note: "an ACCEPTED analysis refunds everything above the fee; this is the half the rejected DeFiConsumer never had",
+  };
+}
+
 // ───────────────────────────────────────────── 8. composability, for real
 if (CONSUMER) {
   console.log(`\n8. DeFiConsumer reads the oracle across a real call boundary`);
   const con = connect({ networkName, address: CONSUMER, role: "integrator" });
   const ccfg = await con.view("get_config");
   ok("the consumer is wired to this oracle", String(ccfg.oracle).toLowerCase() === String(ORACLE).toLowerCase(), ccfg.oracle);
+  ok("the consumer says plainly that it takes no custody", ccfg.custody === false, JSON.stringify(ccfg.custody));
+
+  const cstats = await con.view("get_stats").catch(() => null);
+  ok("the consumer holds no value", cstats?.holds_value === false, JSON.stringify(cstats).slice(0, 200));
 
   const never = await con.view("check", ["definitely-not-analysed-9999"]).catch((e) => ({ allowed: true, reason: String(e) }));
   ok("an unassessed protocol is NOT allowed", never.allowed === false, never.reason);
@@ -259,34 +339,38 @@ if (CONSUMER) {
     ok(`check("${slug}") pins the assessment id`, Number(chk.assessment_id) === Number(scored[slug]?.assessment_id), `${chk.assessment_id} vs ${scored[slug]?.assessment_id}`);
     evidence.consumer_check = chk;
 
-    // A deposit into an UNASSESSED protocol: must be refused AND refunded.
-    const value = 10n ** 16n;
-    const bad = await con.send("deposit", ["definitely-not-analysed-9999"], value);
-    note(bad.hash, "deposit into an unassessed protocol", { settled: bad.status });
-    ok("depositing into an unassessed protocol does not revert", bad.ok === true, `${bad.status} ${bad.revertReason || bad.failure || ""}`);
-    const badBody = bad.returnReadable ? bad.returned : null;
-    if (badBody && typeof badBody === "object") {
-      ok("it is REFUSED with a reason", badBody.status === "REFUSED", JSON.stringify(badBody).slice(0, 200));
-      ok("the deposit is refundable", String(badBody.refund_wei) === String(value), String(badBody.refund_wei));
+    // The write path, across the same call boundary. NOT payable: the gate
+    // decides and records, and the integrator's money never leaves their side.
+    const refused = await con.send("record_check", ["definitely-not-analysed-9999"]);
+    note(refused.hash, "record_check on an unassessed protocol", { settled: refused.status });
+    ok("recording a check on an unassessed protocol does not revert", refused.ok === true, `${refused.status} ${refused.revertReason || refused.failure || ""}`);
+    const refusedBody = refused.returnReadable ? refused.returned : null;
+    if (refusedBody && typeof refusedBody === "object") {
+      ok("it is REFUSED with a reason", refusedBody.status === "REFUSED", JSON.stringify(refusedBody).slice(0, 200));
+      ok("the reason names the missing assessment", String(refusedBody.reason).includes("no DeFiLens assessment"), String(refusedBody.reason).slice(0, 120));
     }
 
-    // A deposit into the SCORED protocol.
-    if (chk.allowed) {
-      const good = await con.send("deposit", [slug], value);
-      note(good.hash, `deposit into ${slug}`, { settled: good.status });
-      ok(`depositing into ${slug} settles`, good.ok === true, `${good.status} ${good.revertReason || good.failure || ""}`);
-      const body = good.returnReadable ? good.returned : null;
-      if (body && typeof body === "object") {
-        ok("the deposit is accepted", body.status === "OK", JSON.stringify(body).slice(0, 200));
-        ok("the position pins the assessment", Number(body.assessment_id) === Number(scored[slug]?.assessment_id), String(body.assessment_id));
-        ok("the position pins the content hash", String(body.content_hash) === String(scored[slug]?.content_hash), String(body.content_hash));
-      }
-      const pos = await con.view("get_position", [slug]).catch(() => null);
-      ok("the position is readable", Boolean(pos?.found), JSON.stringify(pos).slice(0, 200));
-      evidence.consumer_position = pos;
-    } else {
-      console.log(`  · ${slug} is not allowed by the consumer's policy (${chk.reason}); deposit path exercised by the refusal above`);
+    const admitted = await con.send("record_check", [slug]);
+    note(admitted.hash, `record_check on ${slug}`, { settled: admitted.status });
+    ok(`recording a check on ${slug} settles`, admitted.ok === true, `${admitted.status} ${admitted.revertReason || admitted.failure || ""}`);
+    const body = admitted.returnReadable ? admitted.returned : null;
+    if (body && typeof body === "object") {
+      ok("the write agrees with the view it previewed", (body.status === "ADMITTED") === (chk.allowed === true), `${body.status} vs allowed=${chk.allowed}`);
+      ok("the decision pins the assessment", Number(body.assessment_id) === Number(scored[slug]?.assessment_id), String(body.assessment_id));
+      ok("the decision pins the content hash", String(body.content_hash) === String(scored[slug]?.content_hash), String(body.content_hash));
     }
+    const decision = await con.view("get_decision", [slug]).catch(() => null);
+    ok("the recorded decision is readable", Boolean(decision?.found), JSON.stringify(decision).slice(0, 200));
+    evidence.consumer_decision = decision;
+
+    // The custody claim, checked against the chain rather than the source: a
+    // contract that holds nothing has a zero balance, however it is written.
+    const conBalance = await read.getBalance({ address: CONSUMER }).catch(() => null);
+    if (conBalance !== null) {
+      ok("the consumer's on-chain balance is zero", conBalance === 0n, gen(conBalance));
+      evidence.consumer_balance_wei = String(conBalance);
+    }
+
     const refusals = await con.view("get_refusals", [5]).catch(() => null);
     ok("refusals are logged with their reason", Number(refusals?.total_refusals ?? 0) > 0, JSON.stringify(refusals?.refusals?.[0] ?? {}).slice(0, 200));
     evidence.consumer_refusals = refusals;

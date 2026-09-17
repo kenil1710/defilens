@@ -269,8 +269,9 @@ export default async function ProtocolPage({
             <section className="card px-5 py-5">
               <h2 className="text-sm font-semibold">What a contract would do</h2>
               <p className="text-ink-3 mt-1.5 text-xs leading-relaxed">
-                Live from DeFiConsumer, a yield aggregator deployed against this
-                oracle with a floor of {conCfg.min_score}/100.
+                Live from DeFiConsumer, an admission gate deployed against this
+                oracle with a floor of {conCfg.min_score}/100. It reads and
+                decides; it holds no funds.
               </p>
               <div
                 className={`mt-3 rounded-lg border px-3 py-2.5 ${
@@ -278,7 +279,7 @@ export default async function ProtocolPage({
                 }`}
               >
                 <p className="text-sm font-semibold">
-                  {check.allowed ? "Deposit allowed" : "Deposit refused"}
+                  {check.allowed ? "Would be admitted" : "Would be refused"}
                 </p>
                 <p className="text-ink-2 mt-1 text-xs leading-relaxed">
                   {/* The contract answers "allowed" for the happy path, which

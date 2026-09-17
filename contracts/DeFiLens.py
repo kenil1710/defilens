@@ -21,7 +21,7 @@ import typing
 # as the runner header, and a stray comment there makes the contract
 # undeployable with no error reported but `invalid_contract`.
 #
-# SIX RULES govern everything below. All six were measured, not assumed, and
+# SEVEN RULES govern everything below. All seven were measured, not assumed, and
 # each one is a past rejection written down so it cannot happen again.
 #
 #   1. CONSENSUS BINDS EVERY STORED VALUE. Not the verdict, not "the important
@@ -50,6 +50,19 @@ import typing
 #
 #   6. THE OWNER CANNOT FREEZE USER MONEY. `claim_refund` and every read are
 #      ungated on `paused`. Pause stops new risk arriving and nothing else.
+#
+#   7. VALUE A CONTRACT ACCEPTS MUST BE VALUE SOMEBODY CAN GET BACK OUT. Rule 2
+#      is only half of it. DeFiConsumer obeyed rule 2 perfectly on the REFUSAL
+#      path and had no exit whatsoever for value it ACCEPTED — succeeding was
+#      the way to lose your money, and "is there a withdraw method?" answered
+#      yes the whole time. Here the rule is discharged by a ledger identity:
+#      everything this contract holds is either a refund its sender can claim
+#      (`claim_refund`, ungated) or fee revenue the owner can withdraw
+#      (`withdraw_fees`, which subtracts `refunds_owed` first). There is no
+#      third bucket. An ACCEPTED analysis credits back every wei above the fee,
+#      because overpayment is never revenue. `tools/custody_scan.py` follows
+#      `gl.message.value` into storage and fails the audit on any field no
+#      caller can drain; see contracts/NOTES.md §3a.
 #
 # str.replace() is rejected by the runner; slice around find() instead.
 

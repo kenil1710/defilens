@@ -1,8 +1,10 @@
 # Design notes and hazards
 
 Why DeFiLens is built the way it is. The short version is at the top of
-`DeFiLens.py` as six numbered rules; this is the reasoning behind them, plus the
-things that are easy to get wrong and expensive to discover.
+`DeFiLens.py` as numbered rules; this is the reasoning behind them, plus the
+things that are easy to get wrong and expensive to discover. §3a is the newest
+and was the most expensive: a rule that was only half-obeyed reads exactly like
+a rule that was obeyed.
 
 Probe evidence: `docs/PROBE.md`. Live state: `docs/evidence.json`.
 
@@ -121,8 +123,60 @@ new risk arriving and does nothing else.
 
 **Hazard: the payout spelling is silent when wrong.** See docs/PROBE.md §7.
 `Proxy.emit(value=…)` posts no message; `emit_transfer` does. Money leaves
-through exactly one helper, `_pay`, in each contract, and
-`test_money_leaves_through_exactly_one_helper` keeps it that way.
+DeFiLens through exactly one helper, `_pay`, and
+`test_money_leaves_defilens_through_exactly_one_helper` keeps it that way. It
+leaves DeFiConsumer through none, because DeFiConsumer holds none — see §3a.
+
+## 3a. The half of rule 2 that was missing
+
+**Rule: value a contract accepts must be value somebody can get back out.**
+
+Rule 2 says a payable method must refund rather than revert, and DeFiConsumer
+obeyed it perfectly — on the refusal path. The accepted path had no exit at all:
+
+```
+deposit(value)  ──refused──> self.balances[who] += value   ──> withdraw() ✓
+                ──accepted─> pos.amount_wei     += value   ──> nothing
+```
+
+`withdraw()` paid out of `balances`, which an accepted deposit never touched. A
+depositor whose deposit SUCCEEDED could not get it back. Every refusal test
+passed, because every refusal really did refund; nothing looked at the other
+half. **Succeeding was the way to lose your money.**
+
+Two things are worth taking from it.
+
+**The check has to follow the value, not count the methods.** "Is there a
+withdraw?" answered yes the entire time. `tools/custody_scan.py` taints
+`gl.message.value`, propagates it through local names and through the private
+helpers a payable method hands it to, and reports every `self.<field>` it lands
+in; then it asks which of those fields a public write that ANYONE may call —
+no `_only_owner()` — actually reads and pays from. The difference is trapped
+money. Run against the rejected file it reports `positions`, `refusals`,
+`total_deposited`, `total_refused`; against the current pair, nothing.
+
+The scan is imported by the offline suite and run by `tools/audit.sh`, so the
+tests and the audit cannot drift apart on what "trapped" means, and
+`test_the_scan_catches_the_shape_that_was_rejected` runs the rejected shape
+through it and asserts it comes back flagged. A guard that has only ever seen
+code it passes is a guard nobody has tested.
+
+**The better fix was less contract, not more.** A `withdraw_position()` would
+have closed the hole and left a demo contract holding strangers' money for no
+reason. Custody was never part of what DeFiConsumer was demonstrating — it read
+an oracle and applied a policy, and the deposits were scaffolding that made the
+demonstration look bigger while carrying the one risk scaffolding should never
+carry. So the payable surface is gone, `get_config` says `"custody": False`,
+`get_stats` says `"holds_value": False`, and the audit asserts the file contains
+no `gl.message.value`, no `def deposit`, no `def withdraw` and no
+`emit_transfer` at all.
+
+DeFiLens still takes value, because it has a reason to: a fee. There the rule is
+discharged by the ledger identity — everything it holds is either a refund its
+sender can claim or fee revenue the owner can withdraw, and `withdraw_fees`
+subtracts `refunds_owed` before offering a balance. `value_lands_in` reports
+exactly `balance_wei`, `refund_wei` and `refunds_owed`; `claim_refund` reads all
+three and is ungated on pause.
 
 ## 4. Immutability
 

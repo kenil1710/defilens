@@ -44,8 +44,12 @@ if (CONSUMER) {
     address: CONSUMER,
     config: await cc.view("get_config"),
     stats: await cc.view("get_stats"),
-    positions: await cc.view("get_positions"),
+    decisions: await cc.view("get_decisions"),
     refusals: await cc.view("get_refusals", [10]),
+    // The custody claim, read off the chain rather than off the source: a
+    // contract with no payable method has nothing to strand, and its balance
+    // says so without anyone having to take the README's word for it.
+    balance_wei: String(await read.getBalance({ address: CONSUMER }).catch(() => "unknown")),
     checks: {},
   };
   for (const p of list.protocols.slice(0, 6)) {

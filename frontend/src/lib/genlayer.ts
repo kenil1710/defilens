@@ -13,7 +13,7 @@ export const ORACLE_ADDRESS = (process.env.NEXT_PUBLIC_ORACLE_ADDRESS ??
   "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc") as `0x${string}`;
 
 export const CONSUMER_ADDRESS = (process.env.NEXT_PUBLIC_CONSUMER_ADDRESS ??
-  "0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1") as `0x${string}`;
+  "0x635381543a601a4209930Ad34A4e60F023E97509") as `0x${string}`;
 
 export const EXPLORER = "https://explorer-studio-dev.genlayer.com";
 export const CHAIN = studioDevnet;

@@ -184,18 +184,83 @@ then ok "no payable method in DeFiLens raises"; else bad "a payable method can r
 if python3 - <<'PY'
 import ast, sys
 src = open("contracts/DeFiConsumer.py").read()
-tree = ast.parse(src)
-bad = []
-for node in ast.walk(tree):
-    if isinstance(node, ast.FunctionDef) and any(
-            isinstance(d, ast.Attribute) and d.attr == "payable" for d in node.decorator_list):
-        for sub in ast.walk(node):
-            if isinstance(sub, ast.Raise):
-                bad.append(f"{node.name}:{sub.lineno}")
-sys.exit(1 if bad else 0)
+payable = [n.name for n in ast.walk(ast.parse(src))
+           if isinstance(n, ast.FunctionDef)
+           and any(isinstance(d, ast.Attribute) and d.attr == "payable"
+                   for d in n.decorator_list)]
+sys.exit(1 if payable else 0)
 PY
-then ok "no payable method in DeFiConsumer raises"; else bad "a payable consumer method can raise"; fi
+then ok "DeFiConsumer declares no payable method at all"
+else bad "DeFiConsumer accepts value again — see section 4b"; fi
 grep -q "def claim_refund" "$LENS" && ok "claim_refund exists (pull, not push)" || bad "no claim_refund"
+
+# ──────────────────────────── 4b. value that goes in can come back out again
+# The rejection this section exists for: DeFiConsumer took custody through a
+# payable deposit() and had an exit for REFUSED value only. Accepted deposits
+# landed in a position nothing could read, so a depositor whose deposit
+# SUCCEEDED lost it. A shallow "is there a withdraw method?" check passed the
+# whole time, because there WAS one — it just paid from the other ledger. So the
+# check follows the value instead of counting the methods.
+head_ "4b. No accepted value can be trapped (the DeFiConsumer rejection)"
+if CUSTODY=$(python3 tools/custody_scan.py "$LENS" "$CONS" 2>&1); then
+  ok "no incoming value lands where nothing can drain it"
+  printf '%s\n' "$CUSTODY" | sed 's/^/      /'
+else
+  bad "incoming value lands in storage nothing can drain" \
+      "$(printf '%s' "$CUSTODY" | grep TRAPPED)"
+fi
+python3 -c "
+import sys; sys.path.insert(0, 'tools')
+from custody_scan import value_lands_in, anyone_can_drain
+src = open('contracts/DeFiLens.py').read()
+lands = value_lands_in(src)
+print('OK' if lands and lands <= anyone_can_drain(src) else 'FAIL')" | grep -q OK \
+  && ok "every wei DeFiLens accepts is claimable by its sender or withdrawable" \
+  || bad "DeFiLens accepts value with no way out"
+python3 -c "
+import sys; sys.path.insert(0, 'tools')
+from custody_scan import value_lands_in
+print('OK' if not value_lands_in(open('contracts/DeFiConsumer.py').read()) else 'FAIL')" \
+  | grep -q OK \
+  && ok "DeFiConsumer takes no custody, so it has nothing to strand" \
+  || bad "DeFiConsumer writes incoming value into storage"
+for tok in "gl.public.write.payable" "gl.message.value" "def deposit" "def withdraw" "emit_transfer"; do
+  if grep -q -- "$tok" "$CONS"; then
+    bad "DeFiConsumer contains '$tok' — the custody surface is back"
+  else
+    ok "DeFiConsumer contains no '$tok'"
+  fi
+done
+python3 -c "
+import sys; sys.path.insert(0, 'tools')
+from custody_scan import trapped_fields
+# The rejected shape in miniature, through the same scanner. A guard that has
+# only ever seen code it passes is a guard nobody has tested. Note it HAS a
+# public withdraw() that really pays — every count-the-methods check waves it
+# through; only following the value catches it.
+shape = open('/dev/stdin').read()
+print('OK' if sorted(trapped_fields(shape)) == ['positions'] else 'FAIL')" <<'SHAPE' | grep -q OK
+class C:
+    @gl.public.write.payable
+    def deposit(self, slug: str):
+        amount = int(gl.message.value)
+        who = gl.message.sender_address
+        if not ok(slug):
+            self.balances[who] = u256(int(self.balances.get(who) or 0) + amount)
+            return {}
+        pos = self.positions.get_or_insert_default(slug)
+        pos.amount_wei = u256(int(pos.amount_wei) + amount)
+        return {}
+
+    @gl.public.write
+    def withdraw(self):
+        who = gl.message.sender_address
+        amount = int(self.balances.get(who) or 0)
+        self.balances[who] = u256(0)
+        _pay(who, amount)
+SHAPE
+[ $? -eq 0 ] && ok "the scan still catches the exact shape that was rejected" \
+  || bad "the scan no longer rejects the shape it was written for"
 python3 -c "
 src=open('contracts/DeFiLens.py').read()
 i=src.index('def claim_refund')
@@ -322,14 +387,25 @@ for f in ("contracts/DeFiLens.py", "contracts/DeFiConsumer.py"):
 sys.exit(1 if found else 0)
 PY
 then ok "no .emit(value=…) — that spelling posts no message at all"; else bad "a payout uses .emit(value=…), which silently sends nothing"; fi
+# One payout site in DeFiLens, which holds money; NONE in DeFiConsumer, which
+# does not. Expecting one in each was right when both took custody — now zero is
+# the stronger claim, and asserting one would demand the bug back.
 for f in "$LENS" "$CONS"; do
   N=$(python3 -c "
 import ast
 print(sum(1 for n in ast.walk(ast.parse(open('$f').read()))
           if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
           and n.func.attr == 'emit_transfer'))")
-  [ "$N" = "1" ] && ok "$(basename "$f"): money leaves through exactly one call" \
-                 || bad "$(basename "$f"): $N emit_transfer calls (expected 1)"
+  WANT=1; [ "$f" = "$CONS" ] && WANT=0
+  if [ "$N" = "$WANT" ]; then
+    if [ "$WANT" = "0" ]; then
+      ok "$(basename "$f"): never moves value — it holds none"
+    else
+      ok "$(basename "$f"): money leaves through exactly one call"
+    fi
+  else
+    bad "$(basename "$f"): $N emit_transfer calls (expected $WANT)"
+  fi
 done
 grep -q "isinstance(v, bool)" "$LENS" \
   && ok "bool is excluded from integer coercion (Python makes True an int)" \
@@ -354,40 +430,40 @@ else bad "require_safe does not revert on all three"; fi
 grep -q "IDeFiLens(self.oracle).view()" "$CONS" \
   && ok "the consumer reads the oracle cross-contract" \
   || bad "the consumer does not perform a cross-contract read"
+grep -q "class Write:" "$CONS" && ! grep -q "def analyze_protocol" "$CONS" \
+  && ok "the consumer's oracle interface is read-only" \
+  || bad "the consumer can make the oracle write"
 
-# The SAME two AST scans as sections 5 and 6, run against the consumer. A
-# guarantee that holds only in the contract somebody audited is not a guarantee.
+# One policy, one evaluator. The rejected version spelled the same five rules
+# out twice — once in `check` and once in `deposit` — which is two places for
+# them to drift apart on the sixth edit.
 if python3 - <<'PY'
 import ast, sys
 src = open("contracts/DeFiConsumer.py").read()
 tree = ast.parse(src)
-bad_fns = []
+gates = ("HIGH_RISK", "below this gate's floor", "no DeFiLens assessment")
+offenders = []
 for node in ast.walk(tree):
-    if not isinstance(node, ast.FunctionDef):
-        continue
-    if not any(isinstance(d, ast.Attribute) and d.attr == "payable"
-               for d in node.decorator_list):
+    if not isinstance(node, ast.FunctionDef) or node.name == "_decide":
         continue
     seg = ast.get_source_segment(src, node) or ""
-    lines = seg.split("\n")
-    # Index of the first counter increment, and of the last refusal path.
-    counters = [i for i, l in enumerate(lines)
-                if "self.total_deposited = " in l or "self.next_id = " in l]
-    refusals = [i for i, l in enumerate(lines) if "return self._refuse(" in l]
-    if counters and refusals and min(counters) < max(refusals):
-        bad_fns.append(node.name)
-sys.exit(1 if bad_fns else 0)
+    if sum(1 for g in gates if g in seg) >= 2:
+        offenders.append(node.name)
+sys.exit(1 if offenders else 0)
 PY
-then ok "consumer: no counter moves before a path that can still refuse"
-else bad "consumer: a counter moves before a refusal"; fi
+then ok "the policy is evaluated in exactly one place (_decide)"
+else bad "the policy is spelled out in more than one method"; fi
+grep -q "return self._decide(protocol_slug)" "$CONS" \
+  && ok "check() is the same evaluator the write uses, not a second copy" \
+  || bad "check() re-implements the policy"
 
+# A recorded decision, once written, is only touched by the method that owns its
+# lifecycle. Anything else is a state-after-freeze bug.
 if python3 - <<'PY'
 import ast, sys
 src = open("contracts/DeFiConsumer.py").read()
 tree = ast.parse(src)
-# A position, once written, is never edited outside the two methods that own
-# its lifecycle. Anything else is a state-after-freeze bug.
-allowed = {"deposit", "withdraw", "_open"}
+allowed = {"_record", "_log_refusal"}
 offenders = []
 for node in ast.walk(tree):
     if isinstance(node, ast.FunctionDef) and node.name not in allowed:
@@ -395,41 +471,62 @@ for node in ast.walk(tree):
             if isinstance(sub, ast.Assign):
                 for t in sub.targets:
                     if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) \
-                            and t.value.id in ("pos", "rec"):
+                            and t.value.id in ("rec", "row", "pos"):
                         offenders.append(f"{node.name}:{sub.lineno}")
 if offenders:
     print("FAIL " + ",".join(offenders[:4]))
     sys.exit(1)
 sys.exit(0)
 PY
-then ok "consumer: a written position is never mutated outside its lifecycle"
-else bad "consumer: a position is mutated after it was written"; fi
+then ok "consumer: a written decision is never mutated outside its lifecycle"
+else bad "consumer: a decision is mutated after it was written"; fi
 
+# Both consumer stores are rings or capped maps. A consumer a stranger could
+# make grow storage without bound by checking invented slugs is a consumer with
+# a denial of service in it.
+grep -q "MAX_LOG = " "$CONS" && grep -q "MAX_TRACKED = " "$CONS" \
+  && ok "the refusal log and the decision map are both capped" \
+  || bad "an unbounded consumer store"
+grep -q "len(self.slugs) >= MAX_TRACKED" "$CONS" \
+  && ok "a new slug past the cap is decided but not tracked" \
+  || bad "the decision map can grow without bound"
+
+# The public surface, enumerated. A new public write is the moment to ask
+# whether it takes custody, so it has to be added here on purpose.
 if python3 - <<'PY'
 import ast, sys
 src = open("contracts/DeFiConsumer.py").read()
-tree = ast.parse(src)
-offenders = []
-for node in ast.walk(tree):
-    if not isinstance(node, ast.FunctionDef):
+writes, views = set(), set()
+for n in ast.walk(ast.parse(src)):
+    if not isinstance(n, ast.FunctionDef):
         continue
-    if not any(isinstance(d, ast.Attribute) and d.attr == "payable"
-               for d in node.decorator_list):
-        continue
-    for sub in ast.walk(node):
-        if isinstance(sub, ast.Raise):
-            # A raise inside a nested def (a nondet closure) is fine.
-            owner = None
-            for cand in ast.walk(node):
-                if isinstance(cand, ast.FunctionDef) and cand is not node:
-                    if sub in list(ast.walk(cand)):
-                        owner = cand
-            if owner is None:
-                offenders.append(f"{node.name}:{sub.lineno}")
-sys.exit(1 if offenders else 0)
+    for d in n.decorator_list:
+        spelling = ast.dump(d)
+        if "'write'" in spelling:
+            writes.add(n.name)
+        elif "'view'" in spelling:
+            views.add(n.name)
+want_w = {"record_check", "set_policy", "set_paused"}
+want_v = {"check", "get_decision", "get_decisions", "get_refusals",
+          "get_config", "get_stats"}
+if writes != want_w or views != want_v:
+    print("FAIL writes=" + str(sorted(writes)) + " views=" + str(sorted(views)))
+    sys.exit(1)
+sys.exit(0)
 PY
-then ok "consumer: no payable method raises"
-else bad "consumer: a payable method can revert, stranding the deposit"; fi
+then ok "consumer ABI: 3 writes, 6 views, none of them payable"
+else bad "the consumer's public surface changed"; fi
+
+# The claims the contract makes about itself, checked against what it is.
+grep -q '"custody": False' "$CONS" \
+  && ok "get_config states plainly that it takes no custody" \
+  || bad "get_config does not state the custody position"
+grep -q '"holds_value": False' "$CONS" \
+  && ok "get_stats states plainly that it holds no value" \
+  || bad "get_stats does not state the custody position"
+grep -q "never takes custody of funds" "$CONS" \
+  && ok "the stated policy matches the contract's actual surface" \
+  || bad "the stated policy still describes routing deposits"
 
 # ──────────────────────────── 13. the leader is checked before consensus
 head_ "13. The coherence gate on the leader"

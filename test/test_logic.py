@@ -2778,11 +2778,12 @@ class TestUnresolvableAndDegradedProtocols(unittest.TestCase):
                            outs["Bridge"]["scores"]["category_risk"])
 
 # ---------------------------------------------------------------------------
-# 10. DeFiConsumer — composability across a real cross-contract call
+# 10. DeFiConsumer — composability across a real cross-contract call, and the
+#     proof that neither contract can strand the value it is sent
 # ---------------------------------------------------------------------------
 
 CONS = load_full(CONSUMER, "deficonsumer_full")
-_STRUCT_HINTS[("DeFiConsumer", "positions")] = CONS.Position
+_STRUCT_HINTS[("DeFiConsumer", "decisions")] = CONS.Decision
 _STRUCT_HINTS[("DeFiConsumer", "refusals")] = CONS.Refusal
 
 ORACLE_ADDR = "0x" + "e" * 40
@@ -2791,7 +2792,10 @@ ORACLE_ADDR = "0x" + "e" * 40
 def wire_consumer(oracle_impl, min_score=55, max_age=7 * DAY, owner=OWNER):
     """A DeFiConsumer pointed at a REAL DeFiLens instance. The interface handle
     returns that instance, so these tests exercise the actual oracle across the
-    call boundary rather than a hand-written fake that agrees with itself."""
+    call boundary rather than a hand-written fake that agrees with itself.
+
+    `value=0` is not a detail: DeFiConsumer has no payable method to send value
+    to, and TestConsumerTakesNoCustody proves it."""
     ORACLE["impl"] = oracle_impl
     set_message(sender=owner, value=0)
     c = CONS.DeFiConsumer.__new__(CONS.DeFiConsumer)
@@ -2800,6 +2804,11 @@ def wire_consumer(oracle_impl, min_score=55, max_age=7 * DAY, owner=OWNER):
 
 
 class TestConsumer(unittest.TestCase):
+    """The gate, driven across a REAL cross-contract call into a real DeFiLens.
+
+    Nothing here sends value, because there is nowhere in DeFiConsumer for value
+    to go. That is the subject of TestConsumerTakesNoCustody."""
+
     def setUp(self):
         wire_network()
         self.lens = fresh()
@@ -2809,53 +2818,48 @@ class TestConsumer(unittest.TestCase):
     def _score_one(self, slug="aave-v3", answer="3"):
         return analyze(self.lens, slug, sender=ALICE, audit_answer=answer)
 
-    def test_deposit_into_an_unanalysed_protocol_is_refused_and_refunded(self):
-        """THE point of the example. An aggregator that treated 'nobody has
-        looked' as a pass would route money into exactly the protocols nobody
-        has checked."""
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+    def test_an_unanalysed_protocol_is_refused(self):
+        """THE point of the example. A gate that treated 'nobody has looked' as
+        a pass would wave through exactly the protocols nobody has checked."""
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
         self.assertIn("no DeFiLens assessment", out["reason"])
-        self.assertEqual(out["refund_wei"], GEN)
-        self.assertEqual(int(self.con.balances.get(BOB) or 0), GEN)
 
-    def test_deposit_after_a_safe_assessment_is_accepted(self):
+    def test_a_safe_assessment_is_admitted(self):
         scored = self._score_one()
         if scored["verdict"] == D.V_HIGH_RISK:
             self.skipTest("fixture scored HIGH_RISK; covered by its own test")
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
-        self.assertEqual(out["status"], "OK")
-        self.assertEqual(out["deposited_wei"], GEN)
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
+        self.assertEqual(out["status"], "ADMITTED")
         self.assertEqual(out["assessment_id"], scored["assessment_id"])
         self.assertEqual(out["content_hash"], scored["content_hash"])
 
-    def test_the_position_pins_the_evidence_that_admitted_it(self):
+    def test_the_decision_pins_the_evidence_behind_it(self):
         scored = self._score_one()
-        set_message(sender=BOB, value=GEN)
-        self.con.deposit("aave-v3")
-        pos = self.con.get_position("aave-v3")
-        self.assertTrue(pos["found"])
-        self.assertEqual(pos["assessment_id"], scored["assessment_id"])
-        self.assertEqual(pos["content_hash"], scored["content_hash"])
-        self.assertEqual(pos["verdict_at_entry"], scored["verdict"])
-        self.assertEqual(pos["score_at_entry"], scored["overall_score"])
+        set_message(sender=BOB)
+        self.con.record_check("aave-v3")
+        rec = self.con.get_decision("aave-v3")
+        self.assertTrue(rec["found"])
+        self.assertEqual(rec["assessment_id"], scored["assessment_id"])
+        self.assertEqual(rec["content_hash"], scored["content_hash"])
+        self.assertEqual(rec["verdict_at_decision"], scored["verdict"])
+        self.assertEqual(rec["score_at_decision"], scored["overall_score"])
 
-    def test_a_high_risk_verdict_is_refused_and_refunded(self):
+    def test_a_high_risk_verdict_is_refused(self):
         self._score_one()
         self.lens.feeds["aave-v3"].history[0].verdict = D.V_HIGH_RISK
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
         self.assertIn("HIGH_RISK", out["reason"])
-        self.assertEqual(out["refund_wei"], GEN)
 
     def test_an_unknown_verdict_is_refused(self):
         self._score_one()
         self.lens.feeds["aave-v3"].history[0].verdict = D.V_UNKNOWN
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
         self.assertIn("could not score", out["reason"])
 
@@ -2863,29 +2867,28 @@ class TestConsumer(unittest.TestCase):
         self._score_one()
         set_message(sender=OWNER)
         self.con.set_policy(99, 7 * DAY)
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
-        self.assertIn("below this aggregator's floor", out["reason"])
+        self.assertIn("below this gate's floor", out["reason"])
 
     def test_a_stale_assessment_is_refused(self):
         """A SAFE verdict from a year ago is not evidence about today, and the
         staleness rule belongs to the consumer rather than to the oracle."""
         self._score_one()
-        set_message(sender=BOB, value=GEN, when=iso(NOW + 30 * DAY))
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB, when=iso(NOW + 30 * DAY))
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
         self.assertIn("old", out["reason"])
-        self.assertEqual(out["refund_wei"], GEN)
 
     def test_a_zero_age_limit_disables_the_staleness_rule(self):
         self._score_one()
         set_message(sender=OWNER)
         self.con.set_policy(0, 0)
-        set_message(sender=BOB, value=GEN, when=iso(NOW + 365 * DAY))
-        self.assertEqual(self.con.deposit("aave-v3")["status"], "OK")
+        set_message(sender=BOB, when=iso(NOW + 365 * DAY))
+        self.assertEqual(self.con.record_check("aave-v3")["status"], "ADMITTED")
 
-    def test_check_evaluates_the_policy_without_moving_money(self):
+    def test_check_evaluates_the_policy_without_writing_anything(self):
         before = self.con.get_stats()
         first = self.con.check("aave-v3")
         self.assertFalse(first["allowed"])
@@ -2896,72 +2899,53 @@ class TestConsumer(unittest.TestCase):
                          and second["score"] >= second["min_score"])
         self.assertEqual(self.con.get_stats(), before)
 
-    def test_a_zero_value_deposit_is_refused_without_a_refund_entry(self):
-        set_message(sender=BOB, value=0)
-        out = self.con.deposit("aave-v3")
-        self.assertEqual(out["status"], "REFUSED")
-        self.assertEqual(out["refund_wei"], 0)
-        self.assertEqual(int(self.con.balances.get(BOB) or 0), 0)
+    def test_the_view_and_the_write_cannot_disagree(self):
+        """One policy, one evaluator. The earlier version spelled the five rules
+        out twice, in `check` and in `deposit`, which is two places for them to
+        drift apart on the sixth edit."""
+        self._score_one()
+        for slug in ("aave-v3", "never-analysed", "", "!!!", "compound"):
+            previewed = self.con.check(slug)
+            set_message(sender=BOB)
+            recorded = self.con.record_check(slug)
+            self.assertEqual(previewed["allowed"],
+                             recorded["status"] == "ADMITTED", slug)
+            self.assertEqual(previewed["reason"], recorded["reason"], slug)
 
-    def test_withdraw_returns_refused_deposits(self):
-        set_message(sender=BOB, value=GEN)
-        self.con.deposit("aave-v3")
-        TRANSFERS.clear()
-        set_message(sender=BOB)
-        out = self.con.withdraw()
-        self.assertEqual(out["status"], "OK")
-        self.assertEqual(TRANSFERS, [(BOB.as_hex, GEN)])
-
-    def test_withdraw_twice_pays_once(self):
-        set_message(sender=BOB, value=GEN)
-        self.con.deposit("aave-v3")
-        set_message(sender=BOB)
-        self.con.withdraw()
-        TRANSFERS.clear()
-        self.assertEqual(self.con.withdraw()["status"], "NOTHING_OWED")
-        self.assertEqual(TRANSFERS, [])
-
-    def test_withdraw_works_while_paused(self):
-        set_message(sender=BOB, value=GEN)
-        self.con.deposit("aave-v3")
-        set_message(sender=OWNER)
-        self.con.set_paused(True)
-        set_message(sender=BOB)
-        self.assertEqual(self.con.withdraw()["status"], "OK")
-
-    def test_paused_refuses_and_refunds(self):
+    def test_paused_admits_nothing_and_says_so(self):
         self._score_one()
         set_message(sender=OWNER)
         self.con.set_paused(True)
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
-        self.assertEqual(out["refund_wei"], GEN)
+        self.assertIn("paused", out["reason"])
+        self.assertFalse(self.con.check("aave-v3")["allowed"])
+        self.assertTrue(self.con.check("aave-v3")["paused"])
 
-    def test_an_unreachable_oracle_refunds_rather_than_confiscates(self):
+    def test_an_unreachable_oracle_is_a_refusal_not_an_exception(self):
         class Broken:
             def get_risk_summary(self, slug):
                 raise RuntimeError("oracle is down")
         ORACLE["impl"] = Broken()
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
         self.assertIn("did not answer", out["reason"])
-        self.assertEqual(out["refund_wei"], GEN)
 
-    def test_an_oracle_returning_nonsense_refunds(self):
+    def test_an_oracle_returning_nonsense_is_refused(self):
         class Weird:
             def get_risk_summary(self, slug):
                 return "not a dict"
         ORACLE["impl"] = Weird()
-        set_message(sender=BOB, value=GEN)
-        out = self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        out = self.con.record_check("aave-v3")
         self.assertEqual(out["status"], "REFUSED")
-        self.assertEqual(out["refund_wei"], GEN)
+        self.assertIn("unusable", out["reason"])
 
     def test_refusals_are_logged_with_their_reason(self):
-        set_message(sender=BOB, value=GEN)
-        self.con.deposit("aave-v3")
+        set_message(sender=BOB)
+        self.con.record_check("aave-v3")
         log = self.con.get_refusals(5)
         self.assertEqual(log["total_refusals"], 1)
         self.assertEqual(log["refusals"][0]["slug"], "aave-v3")
@@ -2969,32 +2953,60 @@ class TestConsumer(unittest.TestCase):
 
     def test_the_refusal_log_is_a_bounded_ring(self):
         """A consumer a stranger could make grow storage without bound by
-        sending dust is a consumer with a denial of service in it."""
+        checking ten thousand invented slugs is a consumer with a denial of
+        service in it."""
         for i in range(CONS.MAX_LOG + 10):
-            set_message(sender=BOB, value=1)
-            self.con.deposit("slug-" + str(i))
+            set_message(sender=BOB)
+            self.con.record_check("slug-" + str(i))
         self.assertEqual(len(self.con.refusals), CONS.MAX_LOG)
         self.assertEqual(int(self.con.refusal_count), CONS.MAX_LOG + 10)
 
-    def test_repeated_deposits_accumulate_in_one_position(self):
+    def test_the_decision_map_is_bounded_too(self):
+        """The same denial of service, one map over. A new slug past the cap is
+        still DECIDED and still answered — only the bookkeeping stops."""
+        for i in range(CONS.MAX_TRACKED + 5):
+            set_message(sender=BOB)
+            out = self.con.record_check("slug-" + str(i))
+            self.assertEqual(out["status"], "REFUSED")
+        self.assertEqual(len(self.con.slugs), CONS.MAX_TRACKED)
+        self.assertEqual(int(self.con.check_count), CONS.MAX_TRACKED + 5)
+
+    def test_repeated_checks_accumulate_on_one_decision(self):
         self._score_one()
         for _ in range(3):
-            set_message(sender=BOB, value=GEN)
-            out = self.con.deposit("aave-v3")
-            if out["status"] != "OK":
-                self.skipTest("fixture did not admit a deposit")
-        pos = self.con.get_position("aave-v3")
-        self.assertEqual(pos["amount_wei"], 3 * GEN)
-        self.assertEqual(pos["deposits"], 3)
+            set_message(sender=BOB)
+            self.con.record_check("aave-v3")
+        rec = self.con.get_decision("aave-v3")
+        self.assertEqual(rec["checks"], 3)
+        self.assertEqual(len(self.con.slugs), 1)
 
-    def test_positions_list(self):
+    def test_a_later_refusal_overwrites_an_earlier_admission(self):
+        """The decision record is the LATEST answer, not a high-water mark. A
+        protocol that degrades must not keep reading as admitted."""
+        scored = self._score_one()
+        if scored["verdict"] == D.V_HIGH_RISK:
+            self.skipTest("fixture scored HIGH_RISK")
+        set_message(sender=BOB)
+        self.con.record_check("aave-v3")
+        self.assertTrue(self.con.get_decision("aave-v3")["allowed"])
+        self.lens.feeds["aave-v3"].history[0].verdict = D.V_HIGH_RISK
+        set_message(sender=BOB)
+        self.con.record_check("aave-v3")
+        rec = self.con.get_decision("aave-v3")
+        self.assertFalse(rec["allowed"])
+        self.assertEqual(rec["checks"], 2)
+        self.assertEqual(rec["admits"], 1)
+
+    def test_decisions_list(self):
         self._score_one()
-        set_message(sender=BOB, value=GEN)
-        if self.con.deposit("aave-v3")["status"] != "OK":
-            self.skipTest("fixture did not admit a deposit")
-        got = self.con.get_positions()
-        self.assertEqual(got["count"], 1)
-        self.assertEqual(got["total_deposited_wei"], GEN)
+        set_message(sender=BOB)
+        self.con.record_check("aave-v3")
+        set_message(sender=BOB)
+        self.con.record_check("never-analysed")
+        got = self.con.get_decisions()
+        self.assertEqual(got["count"], 2)
+        self.assertEqual(got["admitted"],
+                         1 if self.con.check("aave-v3")["allowed"] else 0)
 
     def test_a_stranger_cannot_change_the_policy(self):
         set_message(sender=STRANGER)
@@ -3014,32 +3026,312 @@ class TestConsumer(unittest.TestCase):
         cfg = self.con.get_config()
         self.assertEqual(cfg["oracle"], ORACLE_ADDR.lower())
         self.assertIn("HIGH_RISK", cfg["policy"])
+        self.assertIn("never takes custody", cfg["policy"])
+        self.assertIs(cfg["custody"], False)
 
-    def test_missing_position_is_an_answer_not_an_error(self):
-        out = self.con.get_position("never-seen")
+    def test_missing_decision_is_an_answer_not_an_error(self):
+        out = self.con.get_decision("never-seen")
         self.assertFalse(out["found"])
-        self.assertEqual(out["amount_wei"], 0)
+        self.assertEqual(out["checks"], 0)
 
-    def test_deposit_never_raises_on_any_input(self):
-        """The RULE 2 property, swept: whatever arrives, the deposit either
-        succeeds or comes back refundable."""
+    def test_record_check_never_raises_on_any_input(self):
+        """Whatever arrives, the gate answers. A gate that reverts makes 'we
+        have not scored that one' indistinguishable from a bug."""
         for slug in ("", "!!!", "a" * 300, "aave-v3", "../../etc"):
-            set_message(sender=BOB, value=GEN)
-            out = self.con.deposit(slug)
-            self.assertIn(out["status"], ("OK", "REFUSED"))
+            set_message(sender=BOB)
+            out = self.con.record_check(slug)
+            self.assertIn(out["status"], ("ADMITTED", "REFUSED"))
 
-    def test_the_consumer_holds_no_unaccounted_value(self):
-        """Every wei that came in is either in a position or credited back."""
-        self._score_one()
+
+# The custody scan lives in tools/custody_scan.py, imported rather than copied
+# so the offline suite and `bash tools/audit.sh` cannot drift apart on what
+# "trapped" means. It follows `gl.message.value` into storage and reports every
+# field it lands in, and every field a depositor-callable method can drain; the
+# difference is money nobody can get back.
+sys.path.insert(0, str(ROOT / "tools"))
+from custody_scan import (  # noqa: E402
+    value_lands_in, anyone_can_drain, trapped_fields)
+
+
+class TestConsumerTakesNoCustody(unittest.TestCase):
+    """PAVEL'S FINDING, closed at the root.
+
+    The rejected version had a payable `deposit()`. Refusals refunded; ACCEPTED
+    deposits were added to a position and had no exit whatsoever — `withdraw()`
+    paid from the refusal ledger, which an accepted deposit never touched. A
+    depositor whose deposit SUCCEEDED lost it permanently.
+
+    Rather than bolt a withdrawal onto the position ledger, the custody is gone:
+    a contract whose whole job is to read an oracle does not hold value. These
+    tests assert that, mechanically, so it cannot come back by accident."""
+
+    def setUp(self):
+        wire_network()
+        self.lens = fresh()
+        self.con = wire_consumer(self.lens)
+        TRANSFERS.clear()
+
+    def _consumer_functions(self):
+        tree = ast.parse(CONSUMER.read_text(encoding="utf8"))
+        return [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
+
+    def test_the_consumer_declares_no_payable_method(self):
+        """The root cause, stated as an invariant: no way in for value at all.
+
+        Everything else about trapped funds is downstream of this. A contract
+        that cannot receive cannot strand."""
+        payable = [n.name for n in self._consumer_functions()
+                   if any(isinstance(d, ast.Attribute) and d.attr == "payable"
+                          for d in n.decorator_list)]
+        self.assertEqual(payable, [], "DeFiConsumer accepts value again")
+
+    def test_the_consumer_never_reads_the_message_value(self):
+        """A non-payable method that branched on `gl.message.value` would be a
+        contract quietly expecting custody it cannot take."""
+        text = CONSUMER.read_text(encoding="utf8")
+        self.assertNotIn("gl.message.value", text)
+
+    def test_the_consumer_never_transfers_value(self):
+        """Zero, not one. DeFiLens keeps exactly one payout helper because it
+        genuinely holds money; the consumer holds none, so the correct number of
+        transfer sites in it is none."""
+        tree = ast.parse(CONSUMER.read_text(encoding="utf8"))
+        calls = [n.lineno for n in ast.walk(tree)
+                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                 and n.func.attr in ("emit_transfer", "emit")]
+        self.assertEqual(calls, [], "the consumer moves value")
+
+    def test_no_consumer_storage_field_is_denominated_in_value(self):
+        """A `_wei` field on a contract that cannot receive is either dead
+        weight or the start of custody creeping back in."""
+        tree = ast.parse(CONSUMER.read_text(encoding="utf8"))
+        offenders = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target,
+                                                              ast.Name):
+                name = node.target.id
+                if "wei" in name or "balance" in name or "amount" in name:
+                    offenders.append(name)
+        self.assertEqual(offenders, [])
+
+    def test_the_consumer_exposes_no_deposit_or_withdraw_surface(self):
+        """The methods that carried the bug are gone, not renamed."""
+        for gone in ("deposit", "withdraw", "balance_of", "get_position",
+                     "get_positions", "_pay", "_refuse"):
+            self.assertFalse(hasattr(self.con, gone),
+                             gone + " is still on DeFiConsumer")
+
+    def test_a_recorded_check_moves_no_money(self):
+        """The runtime half of the same claim: drive every branch and assert the
+        transfer log stays empty and no ledger appears."""
+        analyze(self.lens, "aave-v3", sender=ALICE, audit_answer="3")
+        for slug in ("aave-v3", "never-analysed", "!!!", "compound", ""):
+            set_message(sender=BOB)
+            self.con.record_check(slug)
+        self.assertEqual(TRANSFERS, [])
+
+    def test_the_consumer_abi_is_reads_plus_three_writes(self):
+        """The whole public surface, enumerated. A new public write on this
+        contract has to be added here deliberately, which is the moment to ask
+        whether it takes custody."""
+        writes = set()
+        views = set()
+        for node in self._consumer_functions():
+            for d in node.decorator_list:
+                spelling = ast.dump(d)
+                if "'write'" in spelling or '"write"' in spelling:
+                    writes.add(node.name)
+                elif "'view'" in spelling or '"view"' in spelling:
+                    views.add(node.name)
+        self.assertEqual(writes, {"record_check", "set_policy", "set_paused"})
+        self.assertEqual(views, {"check", "get_decision", "get_decisions",
+                                 "get_refusals", "get_config", "get_stats"})
+
+    def test_the_stats_say_plainly_that_it_holds_nothing(self):
+        self.assertIs(self.con.get_stats()["holds_value"], False)
+
+
+class TestNoAcceptedValueCanBeTrapped(unittest.TestCase):
+    """The general rule the consumer bug was one instance of: VALUE A CONTRACT
+    ACCEPTS MUST BE VALUE SOMEBODY CAN GET BACK OUT.
+
+    The first test is the mechanical one — it scans both contracts and would
+    have failed on the rejected DeFiConsumer. The rest drive DeFiLens, which is
+    the contract that legitimately does take value, and prove the money comes
+    out again down to the last wei."""
+
+    def setUp(self):
+        wire_network()
+        TRANSFERS.clear()
+
+    # --- the AST scan, over both contracts ---------------------------------
+
+    def test_no_incoming_value_lands_where_nothing_can_drain_it(self):
+        """PAVEL'S FOURTH BOX, and THE CHECK THAT WOULD HAVE CAUGHT IT.
+
+        Not "is there a withdraw method" — the rejected consumer had one. This
+        follows the message value into storage and asks, of every field it
+        reaches, whether any caller can get it back out again."""
+        for path in (SOURCE, CONSUMER):
+            src = path.read_text(encoding="utf8")
+            trapped = sorted(trapped_fields(src))
+            self.assertEqual(
+                trapped, [],
+                path.name + " writes incoming value into " + str(trapped)
+                + ", which no depositor-callable method can drain")
+
+    def test_defilens_value_lands_only_where_it_is_meant_to(self):
+        """The positive half, pinned by name. A new storage field that starts
+        taking value has to be added here on purpose."""
+        src = SOURCE.read_text(encoding="utf8")
+        self.assertEqual(sorted(value_lands_in(src)),
+                         ["balance_wei", "refund_wei", "refunds_owed"])
+        self.assertTrue(value_lands_in(src) <= anyone_can_drain(src))
+
+    def test_the_consumer_accepts_value_nowhere_at_all(self):
+        """The strongest form of the same claim: not "it can be drained" but
+        "there is nothing to drain", because nothing can get in."""
+        self.assertEqual(value_lands_in(CONSUMER.read_text(encoding="utf8")),
+                         set())
+
+    def test_the_depositor_exit_is_not_gated_on_pause(self):
+        """Rule 6. An owner who can pause the way out can freeze other people's
+        money, which is custody with extra steps."""
+        text = SOURCE.read_text(encoding="utf8")
+        i = text.index("def claim_refund")
+        seg = text[i:text.index("\n    @", i + 10)]
+        self.assertNotIn("self.paused", seg)
+
+    def test_every_wei_in_defilens_is_owed_to_somebody(self):
+        """The ledger identity, asserted rather than assumed: everything the
+        contract holds is either a refund somebody can claim or fee revenue the
+        owner can withdraw. A third bucket is a trap."""
+        c = fresh(fee_wei=10 ** 15)
+        analyze(c, "aave-v3", sender=ALICE, value=GEN, audit_answer="3")
+        analyze(c, "!!!", sender=BOB, value=2 * GEN)
+        held = int(c.balance_wei)
+        owed = int(c.refunds_owed)
+        withdrawable = held - owed
+        self.assertGreaterEqual(withdrawable, 0)
+        self.assertEqual(held, owed + withdrawable)
+
+    # --- the runtime proofs -------------------------------------------------
+
+    def test_an_accepted_analysis_refunds_everything_above_the_fee(self):
+        """The half the rejected consumer never had: the SUCCESS path returns
+        the caller's money. Overpayment is never revenue."""
+        fee = 10 ** 15
+        c = fresh(fee_wei=fee)
+        out = analyze(c, "aave-v3", sender=ALICE, value=GEN, audit_answer="3")
+        self.assertEqual(out["status"], "OK")
+        TRANSFERS.clear()
+        set_message(sender=ALICE)
+        claimed = c.claim_refund()
+        self.assertEqual(claimed["refund_wei"], GEN - fee)
+        self.assertEqual(TRANSFERS, [(ALICE.as_hex, GEN - fee)])
+
+    def test_a_free_analysis_returns_the_whole_deposit(self):
+        """With no fee there is no revenue, so an accepted analysis must give
+        back every wei it was sent."""
+        c = fresh(fee_wei=0)
+        out = analyze(c, "aave-v3", sender=ALICE, value=GEN, audit_answer="3")
+        self.assertEqual(out["status"], "OK")
+        TRANSFERS.clear()
+        set_message(sender=ALICE)
+        c.claim_refund()
+        self.assertEqual(TRANSFERS, [(ALICE.as_hex, GEN)])
+        self.assertEqual(int(c.balance_wei), 0)
+
+    def test_the_contract_can_be_drained_to_zero_after_a_mixed_workload(self):
+        """PAVEL'S THIRD BOX. Accepted calls, rejected calls and overpayments in
+        one run; then everybody claims and the owner takes the fees. What is
+        left in the contract must be nothing at all."""
+        fee = 10 ** 15
+        c = fresh(fee_wei=fee)
         sent = 0
-        for slug, value in (("aave-v3", GEN), ("never-analysed", 2 * GEN),
-                            ("compound", 3 * GEN)):
-            set_message(sender=BOB, value=value)
-            self.con.deposit(slug)
+        for slug, who, value, answer in (
+                ("aave-v3", ALICE, GEN, "3"),          # accepted, overpaid
+                ("!!!", BOB, 2 * GEN, None),           # rejected outright
+                ("compound", STRANGER, 3 * GEN, None),  # not on DeFi Llama
+                ("lido", ALICE, fee, "2")):            # accepted, exact fee
+            analyze(c, slug, sender=who, value=value, when=iso(NOW + sent),
+                    audit_answer=answer)
             sent += value
-        credited = int(self.con.balances.get(BOB) or 0)
-        positioned = int(self.con.total_deposited)
-        self.assertEqual(credited + positioned, sent)
+        TRANSFERS.clear()
+        for who in (ALICE, BOB, STRANGER):
+            set_message(sender=who)
+            c.claim_refund()
+        available = int(c.balance_wei) - int(c.refunds_owed)
+        if available > 0:
+            set_message(sender=OWNER)
+            c.withdraw_fees(available)
+        self.assertEqual(int(c.balance_wei), 0, "wei left in the contract")
+        self.assertEqual(int(c.refunds_owed), 0)
+        self.assertEqual(sum(v for _a, v in TRANSFERS), sent,
+                         "what went in did not all come back out")
+
+    def test_nothing_a_depositor_sent_ends_up_owner_only(self):
+        """The owner's withdrawable amount never includes a credited refund, at
+        any point in the workload — checked after every step, not just at the
+        end."""
+        c = fresh(fee_wei=10 ** 15)
+        for slug, who, value in (("aave-v3", ALICE, GEN),
+                                 ("!!!", BOB, 2 * GEN),
+                                 ("compound", STRANGER, 3 * GEN)):
+            analyze(c, slug, sender=who, value=value, audit_answer="3")
+            self.assertLessEqual(int(c.refunds_owed), int(c.balance_wei))
+            set_message(sender=OWNER)
+            with self.assertRaises(_UserError):
+                c.withdraw_fees(int(c.balance_wei))
+
+    def test_the_scan_catches_the_shape_that_was_rejected(self):
+        """A GUARD IS WORTH WHAT IT REJECTS.
+
+        A check that has only ever seen code it passes is a check nobody has
+        tested. This is the rejected consumer in miniature — a payable entry
+        point crediting refusals to a drainable ledger and accepted value to a
+        position nothing reads — run through the SAME scanner the test above
+        uses. It must come back naming the position as trapped.
+
+        Note what it does NOT rely on: this shape has a public `withdraw()`
+        that really pays. Every count-the-methods version of the check passes
+        it. Only following the value catches it."""
+        rejected = (
+            "class C:\n"
+            "    @gl.public.write.payable\n"
+            "    def deposit(self, slug: str) -> typing.Any:\n"
+            "        amount = int(gl.message.value)\n"
+            "        who = gl.message.sender_address\n"
+            "        if not ok(slug):\n"
+            "            self.balances[who] = u256(\n"
+            "                int(self.balances.get(who) or 0) + amount)\n"
+            "            return {'status': 'REFUSED'}\n"
+            "        pos = self.positions.get_or_insert_default(slug)\n"
+            "        pos.amount_wei = u256(int(pos.amount_wei) + amount)\n"
+            "        self.total_deposited = u256(\n"
+            "            int(self.total_deposited) + amount)\n"
+            "        return {'status': 'OK'}\n"
+            "\n"
+            "    @gl.public.write\n"
+            "    def withdraw(self) -> typing.Any:\n"
+            "        who = gl.message.sender_address\n"
+            "        amount = int(self.balances.get(who) or 0)\n"
+            "        self.balances[who] = u256(0)\n"
+            "        _pay(who, amount)\n"
+            "        return {'status': 'OK'}\n")
+        self.assertEqual(sorted(value_lands_in(rejected)),
+                         ["balances", "positions", "total_deposited"])
+        self.assertEqual(sorted(anyone_can_drain(rejected)), ["balances"])
+        self.assertEqual(sorted(trapped_fields(rejected)),
+                         ["positions", "total_deposited"])
+
+    def test_the_shipped_consumer_carries_none_of_that_shape(self):
+        """The methods that carried the bug are gone from the file, not
+        renamed around it."""
+        text = CONSUMER.read_text(encoding="utf8")
+        for token in ("gl.public.write.payable", "gl.message.value",
+                      "def deposit", "def withdraw", "emit_transfer"):
+            self.assertNotIn(token, text, token + " is back in DeFiConsumer")
 
 
 class TestStaticIntegrity(unittest.TestCase):
@@ -3169,17 +3461,20 @@ class TestValueActuallyLeaves(unittest.TestCase):
                     self.fail(path.name + ":" + str(node.lineno)
                               + " calls .emit(value=…), which posts no message")
 
-    def test_money_leaves_through_exactly_one_helper(self):
-        """One spelling, in one place, in each contract. A payout written inline
-        somewhere else is a payout nobody reviewed."""
-        for path in (SOURCE, CONSUMER):
-            text = path.read_text(encoding="utf8")
-            tree = ast.parse(text)
-            calls = [n.lineno for n in ast.walk(tree)
-                     if isinstance(n, ast.Call)
-                     and isinstance(n.func, ast.Attribute)
-                     and n.func.attr == "emit_transfer"]
-            self.assertEqual(len(calls), 1, path.name + " lines " + str(calls))
+    def test_money_leaves_defilens_through_exactly_one_helper(self):
+        """One spelling, in one place. A payout written inline somewhere else is
+        a payout nobody reviewed.
+
+        DeFiLens is now the ONLY contract in this project that pays anything at
+        all — see `test_the_consumer_never_transfers_value` for the other half,
+        which asserts zero rather than one."""
+        text = SOURCE.read_text(encoding="utf8")
+        tree = ast.parse(text)
+        calls = [n.lineno for n in ast.walk(tree)
+                 if isinstance(n, ast.Call)
+                 and isinstance(n.func, ast.Attribute)
+                 and n.func.attr == "emit_transfer"]
+        self.assertEqual(len(calls), 1, SOURCE.name + " lines " + str(calls))
 
     def test_claim_refund_really_transfers(self):
         c = fresh(fee_wei=10**15)
@@ -3197,16 +3492,6 @@ class TestValueActuallyLeaves(unittest.TestCase):
         set_message(sender=OWNER)
         c.withdraw_fees(fee)
         self.assertEqual(TRANSFERS, [(OWNER.as_hex, fee)])
-
-    def test_the_consumer_withdraw_really_transfers(self):
-        lens = fresh()
-        con = wire_consumer(lens)
-        set_message(sender=BOB, value=GEN)
-        con.deposit("never-analysed")
-        TRANSFERS.clear()
-        set_message(sender=BOB)
-        con.withdraw()
-        self.assertEqual(TRANSFERS, [(BOB.as_hex, GEN)])
 
     def test_a_zero_payout_posts_no_message(self):
         """emit_transfer RAISES on a zero value. `_pay` must return early rather

@@ -10,9 +10,9 @@ written on chain.
 | Live site | https://defilens-sigma.vercel.app |
 | Network | GenLayer Studio Dev (chain `61997`) |
 | Oracle | [`0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc`](https://explorer-studio-dev.genlayer.com/) |
-| Consumer | [`0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1`](https://explorer-studio-dev.genlayer.com/) |
-| Offline tests | 330, all passing |
-| Contract audit | 86 checks, 0 failures — `bash tools/audit.sh` |
+| Consumer | [`0x635381543a601a4209930Ad34A4e60F023E97509`](https://explorer-studio-dev.genlayer.com/) |
+| Offline tests | 346, all passing |
+| Contract audit | 102 checks, 0 failures — `bash tools/audit.sh` |
 | Site audit | all green — `node tools/audit_site.mjs` |
 | Claims audit | all green — `node tools/audit_claims.mjs` |
 
@@ -76,8 +76,15 @@ not read the same as "we checked and it is fine".
 
 ## Reading it from a contract
 
-`DeFiConsumer` is a working example: a vault that refuses deposits into
-protocols the oracle has not cleared.
+`DeFiConsumer` is a working example: the **admission gate** a vault would run
+before it moved money. It reads the oracle, applies its own policy, and records
+what it decided with the evidence behind it.
+
+**It takes no custody.** No payable method, no balance, no transfer anywhere in
+the file. The read and the decision are the demonstration; moving the money
+belongs to the integrator, whose withdrawal path already exists. A demo contract
+that accepts deposits has to answer for every wei it takes, and this one has no
+reason to be in that position — see [rule 7](#the-seven-rules).
 
 ```python
 def _ask(self, slug: str) -> typing.Any:
@@ -86,24 +93,25 @@ def _ask(self, slug: str) -> typing.Any:
     through an error handler."""
     return IDeFiLens(self.oracle).view().get_risk_summary(slug)
 
-@gl.public.write.payable
-def deposit(self, protocol_slug: str) -> typing.Any:
-    """NEVER RAISES. Every refusal credits the deposit back, claimable
-    with withdraw()."""
-    ...
-    summary = self._ask(slug)
-    verdict = str(summary.get("verdict", V_UNKNOWN))
+@gl.public.write            # NOT payable. This contract holds nothing.
+def record_check(self, protocol_slug: str) -> typing.Any:
+    """Run the gate against a protocol and RECORD what it decided."""
+    decision = self._decide(protocol_slug)      # the same evaluator check() uses
+    self._record(decision, self._now())
     ...
 ```
 
 It reads `get_risk_summary` through a `@gl.contract.interface`, enforces a
 minimum score (55) and a maximum assessment age (7 days), and records every
 refusal with its reason in a bounded ring — a consumer that a stranger could
-grow without bound by sending dust is a consumer with a denial-of-service in it.
-The oracle being unreachable is not the depositor's fault and does not cost them
-their deposit.
+grow without bound by checking invented slugs is a consumer with a
+denial-of-service in it. The oracle being unreachable is a refusal with a
+reason, not an exception thrown at the caller.
 
-## The six rules
+`check()` (a view) and `record_check()` (a write) both call `_decide`, so what a
+reader previews and what the chain records cannot drift apart.
+
+## The seven rules
 
 Each is a past rejection written down so it cannot happen again. They are at the
 top of `contracts/DeFiLens.py`; the reasoning is in
@@ -120,6 +128,11 @@ top of `contracts/DeFiLens.py`; the reasoning is in
    buffer; it never edits an old record.
 6. **The owner cannot freeze user money.** Refunds and every read are ungated on
    `paused`.
+7. **Value a contract accepts must be value somebody can get back out.** The
+   refusal path refunding is only half of it: an *accepted* call has to return
+   what it does not keep, and a contract with no reason to hold funds should not
+   be payable at all. `tools/custody_scan.py` follows `gl.message.value` into
+   storage and fails the audit on any field no caller can drain.
 
 ## Verifying a rating yourself
 
@@ -156,15 +169,16 @@ Screenshots of every page, desktop and mobile, are in [`screenshots/`](screensho
 ## Layout
 
 ```
-contracts/DeFiLens.py      the oracle (2,412 lines)
-contracts/DeFiConsumer.py  a contract that reads it (499 lines)
+contracts/DeFiLens.py      the oracle (2,425 lines)
+contracts/DeFiConsumer.py  a contract that reads it — no custody (489 lines)
 contracts/NOTES.md         why it is built this way, and the hazards
 contracts/_render_probe.py the throwaway probe that measured validator egress
 docs/PROBE.md              what the probe found, with raw responses
 docs/evidence.json         live chain state
-test/test_logic.py         330 offline tests against a GenVM stub
+test/test_logic.py         346 offline tests against a GenVM stub
 test/e2e.mjs               end-to-end against Studio Dev
-tools/audit.sh             86 mechanical checks over both contracts
+tools/audit.sh             102 mechanical checks over both contracts
+tools/custody_scan.py      follows incoming value into storage; fails on a trap
 tools/audit_site.mjs       browser checks — routes, 390px, console, links
 tools/audit_claims.mjs     every number this README asserts, checked live
 frontend/                  Next.js 16 site, six pages
@@ -178,6 +192,9 @@ cd test && python3 -m unittest test_logic
 
 # every mechanical check over both contracts
 bash tools/audit.sh
+
+# where does incoming value land, and can anything drain it?
+python3 tools/custody_scan.py contracts/DeFiLens.py contracts/DeFiConsumer.py
 
 # every number this README claims, checked against the live chain
 node tools/audit_claims.mjs
@@ -202,5 +219,6 @@ to recover one row from a truncated JSON fragment.
 
 Two more hazards it caught, both silent: a `float` in a nondet return is not
 calldata encodable, and `Proxy.emit(value=…)` posts no message at all where
-`emit_transfer` does — so money leaves through exactly one helper in each
-contract, and a test keeps it that way.
+`emit_transfer` does — so money leaves DeFiLens through exactly one helper, and
+leaves DeFiConsumer through none, because it holds none. A test keeps both
+numbers where they are.

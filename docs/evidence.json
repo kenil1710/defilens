@@ -1,10 +1,10 @@
 {
-  "read_at": "2026-09-11T10:55:17.208Z",
+  "read_at": "2026-09-17T22:56:50.194Z",
   "network": "studiodev",
   "chain_id": 61997,
   "explorer": "https://explorer-studio-dev.genlayer.com/",
   "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
-  "consumer": "0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1",
+  "consumer": "0x635381543a601a4209930Ad34A4e60F023E97509",
   "config": {
     "audit_bonus_max": 4,
     "audit_levels": [
@@ -4769,99 +4769,67 @@
     "of": 24
   },
   "consumer_state": {
-    "address": "0x77DAF72BbaA65f3613D503b21BDb4A2C0858b1B1",
+    "address": "0x635381543a601a4209930Ad34A4e60F023E97509",
     "config": {
+      "custody": false,
       "max_assessment_age_s": 604800,
-      "max_positions": 200,
+      "max_tracked": 200,
       "min_score": 55,
       "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
       "owner": "0xd17a5d5Db953152DB27d6ab2fF66d9ce399BB34F",
       "paused": false,
-      "policy": "deposits are routed only into protocols DeFiLens has scored at or above the floor, whose verdict is not HIGH_RISK or UNKNOWN, and whose assessment is within the age limit"
+      "policy": "a protocol is admitted only if DeFiLens has scored it at or above the floor, its verdict is not HIGH_RISK or UNKNOWN, and its assessment is within the age limit. This contract decides and records; it never takes custody of funds."
     },
     "stats": {
-      "deposits": 4,
-      "positions": 2,
-      "refusals": 5,
-      "total_deposited_wei": "40000000000000000",
-      "total_refused_wei": "50000000000000000"
+      "admits": 1,
+      "checks": 2,
+      "holds_value": false,
+      "refusals": 1,
+      "tracked": 2
     },
-    "positions": {
+    "decisions": {
+      "admitted": 1,
       "count": 2,
-      "positions": [
+      "decisions": [
         {
-          "amount_wei": "30000000000000000",
+          "admits": 0,
+          "allowed": false,
+          "assessment_id": 0,
+          "category": "",
+          "checks": 1,
+          "content_hash": "",
+          "first_checked_at": 1789685630,
+          "found": true,
+          "last_checked_at": 1789685630,
+          "name": "",
+          "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
+          "score_at_decision": 0,
+          "slug": "definitely-not-analysed-9999",
+          "verdict_at_decision": "UNKNOWN"
+        },
+        {
+          "admits": 1,
+          "allowed": true,
           "assessment_id": 9,
           "category": "Lending",
+          "checks": 1,
           "content_hash": "438:1f368b405e049c8e",
-          "deposits": 3,
-          "first_deposit_at": 1789115074,
+          "first_checked_at": 1789685641,
           "found": true,
-          "last_deposit_at": 1789116249,
+          "last_checked_at": 1789685641,
           "name": "Aave V3",
-          "score_at_entry": 85,
+          "reason": "allowed",
+          "score_at_decision": 85,
           "slug": "aave-v3",
-          "verdict_at_entry": "SAFE"
-        },
-        {
-          "amount_wei": "10000000000000000",
-          "assessment_id": 8,
-          "category": "Yield",
-          "content_hash": "417:3d4840babec7130d",
-          "deposits": 1,
-          "first_deposit_at": 1789116074,
-          "found": true,
-          "last_deposit_at": 1789116074,
-          "name": "Pendle",
-          "score_at_entry": 70,
-          "slug": "pendle",
-          "verdict_at_entry": "SAFE"
+          "verdict_at_decision": "SAFE"
         }
-      ],
-      "total_deposited_wei": "40000000000000000"
+      ]
     },
     "refusals": {
-      "count": 5,
+      "count": 1,
       "refusals": [
         {
-          "amount_wei": "10000000000000000",
-          "at": 1789116241,
-          "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
-          "score": 0,
-          "slug": "definitely-not-analysed-9999",
-          "verdict": "UNKNOWN",
-          "who": "0x7fD49a26F0196A1C21694364f7F12B6A98A2c083"
-        },
-        {
-          "amount_wei": "10000000000000000",
-          "at": 1789116063,
-          "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
-          "score": 0,
-          "slug": "definitely-not-analysed-9999",
-          "verdict": "UNKNOWN",
-          "who": "0x7fD49a26F0196A1C21694364f7F12B6A98A2c083"
-        },
-        {
-          "amount_wei": "10000000000000000",
-          "at": 1789115956,
-          "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
-          "score": 0,
-          "slug": "definitely-not-analysed-9999",
-          "verdict": "UNKNOWN",
-          "who": "0x7fD49a26F0196A1C21694364f7F12B6A98A2c083"
-        },
-        {
-          "amount_wei": "10000000000000000",
-          "at": 1789115389,
-          "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
-          "score": 0,
-          "slug": "definitely-not-analysed-9999",
-          "verdict": "UNKNOWN",
-          "who": "0x7fD49a26F0196A1C21694364f7F12B6A98A2c083"
-        },
-        {
-          "amount_wei": "10000000000000000",
-          "at": 1789115067,
+          "at": 1789685630,
           "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed-9999') on the oracle first",
           "score": 0,
           "slug": "definitely-not-analysed-9999",
@@ -4869,16 +4837,20 @@
           "who": "0x7fD49a26F0196A1C21694364f7F12B6A98A2c083"
         }
       ],
-      "total_refusals": 5
+      "total_refusals": 1
     },
+    "balance_wei": "0",
     "checks": {
       "aave-v3": {
         "allowed": true,
-        "assessment_age_s": 8329,
+        "assessment_age_s": 570015,
         "assessment_id": 9,
+        "category": "Lending",
         "content_hash": "438:1f368b405e049c8e",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "Aave V3",
+        "paused": false,
         "reason": "allowed",
         "score": 85,
         "slug": "aave-v3",
@@ -4886,11 +4858,14 @@
       },
       "uniswap-v3": {
         "allowed": true,
-        "assessment_age_s": 8300,
+        "assessment_age_s": 569985,
         "assessment_id": 10,
+        "category": "Dexs",
         "content_hash": "565:0bff88a391d619c5",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "Uniswap V3",
+        "paused": false,
         "reason": "allowed",
         "score": 85,
         "slug": "uniswap-v3",
@@ -4898,11 +4873,14 @@
       },
       "compound-v3": {
         "allowed": true,
-        "assessment_age_s": 7804,
+        "assessment_age_s": 569488,
         "assessment_id": 15,
+        "category": "Lending",
         "content_hash": "368:3efa639c2d44adcd",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "Compound V3",
+        "paused": false,
         "reason": "allowed",
         "score": 90,
         "slug": "compound-v3",
@@ -4910,11 +4888,14 @@
       },
       "curve-dex": {
         "allowed": true,
-        "assessment_age_s": 8235,
+        "assessment_age_s": 569919,
         "assessment_id": 13,
+        "category": "Dexs",
         "content_hash": "524:563056f579fa5755",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "Curve DEX",
+        "paused": false,
         "reason": "allowed",
         "score": 70,
         "slug": "curve-dex",
@@ -4922,11 +4903,14 @@
       },
       "lido": {
         "allowed": true,
-        "assessment_age_s": 8254,
+        "assessment_age_s": 569936,
         "assessment_id": 12,
+        "category": "Liquid Staking",
         "content_hash": "321:90ad06870810ae4e",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "Lido",
+        "paused": false,
         "reason": "allowed",
         "score": 85,
         "slug": "lido",
@@ -4934,11 +4918,14 @@
       },
       "gmx": {
         "allowed": true,
-        "assessment_age_s": 8297,
+        "assessment_age_s": 569978,
         "assessment_id": 11,
+        "category": "Derivatives",
         "content_hash": "352:d7ad15881e42342b",
         "max_assessment_age_s": 604800,
         "min_score": 55,
+        "name": "GMX",
+        "paused": false,
         "reason": "allowed",
         "score": 65,
         "slug": "gmx",
@@ -4948,10 +4935,13 @@
         "allowed": false,
         "assessment_age_s": -1,
         "assessment_id": 0,
+        "category": "",
         "content_hash": "",
         "max_assessment_age_s": 604800,
         "min_score": 55,
-        "reason": "no DeFiLens assessment exists for this protocol",
+        "name": "",
+        "paused": false,
+        "reason": "no DeFiLens assessment exists for this protocol — call analyze_protocol('definitely-not-analysed') on the oracle first",
         "score": 0,
         "slug": "definitely-not-analysed",
         "verdict": "UNKNOWN"
