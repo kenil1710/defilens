@@ -485,77 +485,408 @@
           "UNKNOWN": 0
         }
       }
+    },
+    {
+      "at": "2026-09-18T05:23:53.618Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "aave-v3",
+          "ok": true,
+          "hash": "0x6bc51f2b4513bb5ef8288ba61ba214fd705c5da3d1f0b6ae17870370b5958bbf",
+          "seconds": 48,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x6bc51f2b4513bb5ef8288ba61ba214fd705c5da3d1f0b6ae17870370b5958bbf"
+        },
+        {
+          "slug": "uniswap-v3",
+          "ok": true,
+          "hash": "0x054eedb6e260559d876cf0afd1446d070f1fc7ec62f9b485160cab8976de136f",
+          "seconds": 20,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x054eedb6e260559d876cf0afd1446d070f1fc7ec62f9b485160cab8976de136f"
+        },
+        {
+          "slug": "lido",
+          "ok": true,
+          "hash": "0xa1e932631427024281bbfb9653fbd0e1dc270ba379a69d4f63038faf25c21264",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa1e932631427024281bbfb9653fbd0e1dc270ba379a69d4f63038faf25c21264"
+        },
+        {
+          "slug": "compound-v3",
+          "ok": true,
+          "hash": "0xe33ab64fe98b5a63dac431bbb549f93359e2420e1f9fd9430c551047f8623e4d",
+          "seconds": 27,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe33ab64fe98b5a63dac431bbb549f93359e2420e1f9fd9430c551047f8623e4d"
+        },
+        {
+          "slug": "curve-dex",
+          "ok": true,
+          "hash": "0xba2ac430fad899061736627ec3b2993f168e72e76602fa5fa96a0c1ca2aa83e7",
+          "seconds": 35,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xba2ac430fad899061736627ec3b2993f168e72e76602fa5fa96a0c1ca2aa83e7"
+        },
+        {
+          "slug": "makerdao",
+          "ok": true,
+          "hash": "0xcf3286bc3241c9fc1de10ec9a724e22d569d1344887e1df4444dccdfff006d12",
+          "seconds": 15,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xcf3286bc3241c9fc1de10ec9a724e22d569d1344887e1df4444dccdfff006d12"
+        },
+        {
+          "slug": "pendle",
+          "ok": true,
+          "hash": "0x10c4be2255e7a4e0a3138d096b28860feca713593252a3202ea2a02a5ce172f7",
+          "seconds": 33,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x10c4be2255e7a4e0a3138d096b28860feca713593252a3202ea2a02a5ce172f7"
+        },
+        {
+          "slug": "gmx",
+          "ok": true,
+          "hash": "0xa50a5e95aac03ee7b8635088f41ae2b42176b6755ecd32eb61c59a1d63c72022",
+          "seconds": 20,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa50a5e95aac03ee7b8635088f41ae2b42176b6755ecd32eb61c59a1d63c72022"
+        },
+        {
+          "slug": "stargate",
+          "ok": true,
+          "hash": "0xe6aa0d489ac2d477a50f71c5c5a52747369d9cebf3b44fb11f4635c71f8747a0",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe6aa0d489ac2d477a50f71c5c5a52747369d9cebf3b44fb11f4635c71f8747a0"
+        },
+        {
+          "slug": "across",
+          "ok": true,
+          "hash": "0x072b24460196b92e134691f89e792a8ec61a3747654d4259c9df4ef48f814ab4",
+          "seconds": 16,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x072b24460196b92e134691f89e792a8ec61a3747654d4259c9df4ef48f814ab4"
+        },
+        {
+          "slug": "rocket-pool",
+          "ok": true,
+          "hash": "0x2e52d6dceb7623f89daa2a278258d5eaddb9d6f18ab682be991da43f8b10074b",
+          "seconds": 14,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x2e52d6dceb7623f89daa2a278258d5eaddb9d6f18ab682be991da43f8b10074b"
+        },
+        {
+          "slug": "eigenlayer",
+          "ok": true,
+          "hash": "0x68c9ff3dbb6de4260ca13d2cf4f0b92141902ba955f2f0bfa6d63748199d9e72",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x68c9ff3dbb6de4260ca13d2cf4f0b92141902ba955f2f0bfa6d63748199d9e72"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 67,
+          "chain_diversity": 44,
+          "maturity": 81,
+          "momentum": 68,
+          "tvl_health": 40
+        },
+        "average_score": 61,
+        "balance_wei": 0,
+        "categories_tracked": 12,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 24,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 42,
+        "total_rejected": 44,
+        "total_requests": 48,
+        "verdicts": {
+          "HIGH_RISK": 7,
+          "MODERATE": 14,
+          "SAFE": 21,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-18T05:40:25.167Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "morpho-blue",
+          "ok": true,
+          "hash": "0x1119402b190e8c3997ee420e088507ba52f5c0c2ae1f90792705b54cf238750a",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x1119402b190e8c3997ee420e088507ba52f5c0c2ae1f90792705b54cf238750a"
+        },
+        {
+          "slug": "raft",
+          "ok": true,
+          "hash": "0xdca63310048e63fd00a139a4a8280dcdc694fd39af6c7caa715e51b2805d4320",
+          "seconds": 8,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xdca63310048e63fd00a139a4a8280dcdc694fd39af6c7caa715e51b2805d4320"
+        },
+        {
+          "slug": "vector-finance",
+          "ok": true,
+          "hash": "0xc222e925a0d4c18f2b1eeb4766e779b64ae15dc36e2cec9e5e209f3b3f20f360",
+          "seconds": 8,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc222e925a0d4c18f2b1eeb4766e779b64ae15dc36e2cec9e5e209f3b3f20f360"
+        },
+        {
+          "slug": "struct-finance",
+          "ok": true,
+          "hash": "0x6bc29ab53d5fe88c390ceeaa208d388715902ebd62df09ad01861ba7b87c9771",
+          "seconds": 8,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x6bc29ab53d5fe88c390ceeaa208d388715902ebd62df09ad01861ba7b87c9771"
+        },
+        {
+          "slug": "stabilize",
+          "ok": true,
+          "hash": "0x395d43b6f6f60cc5ee9639e47c7834f0237aeb7f6c2547fc98ca8de6b1d6d2e1",
+          "seconds": 10,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x395d43b6f6f60cc5ee9639e47c7834f0237aeb7f6c2547fc98ca8de6b1d6d2e1"
+        },
+        {
+          "slug": "auctus",
+          "ok": true,
+          "hash": "0x69eb23693b749b2b0626c0ef8255fd001d734eccc9aeee04c93f7015bc4d6eac",
+          "seconds": 6,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x69eb23693b749b2b0626c0ef8255fd001d734eccc9aeee04c93f7015bc4d6eac"
+        },
+        {
+          "slug": "tidal-finance",
+          "ok": true,
+          "hash": "0x5d9fbcb6ca27e0d8cc7c83cfc068bdae47faf62c3f98b48a49bc462160425e26",
+          "seconds": 18,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x5d9fbcb6ca27e0d8cc7c83cfc068bdae47faf62c3f98b48a49bc462160425e26"
+        },
+        {
+          "slug": "katana-perps",
+          "ok": true,
+          "hash": "0xc955359061bee64f4a7ae391224559e5f9924a324b8495995e83930ceaad8bf2",
+          "seconds": 12,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xc955359061bee64f4a7ae391224559e5f9924a324b8495995e83930ceaad8bf2"
+        },
+        {
+          "slug": "predictstreet",
+          "ok": true,
+          "hash": "0xe290a75bc0703811ac1c8a66a86e49af01a4dc2768b385b5da7f94b34ed00819",
+          "seconds": 16,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe290a75bc0703811ac1c8a66a86e49af01a4dc2768b385b5da7f94b34ed00819"
+        },
+        {
+          "slug": "waterx",
+          "ok": true,
+          "hash": "0x34a0022bc77087b1958d6f44503ebaad70174fc2de2ec1fd6e21378ccbdc7b29",
+          "seconds": 12,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x34a0022bc77087b1958d6f44503ebaad70174fc2de2ec1fd6e21378ccbdc7b29"
+        },
+        {
+          "slug": "boar-finance",
+          "ok": true,
+          "hash": "0xd5c3874a3d850c8fe214b8f3ec6b889a873de49d634137346d3e78046ab1ed18",
+          "seconds": 12,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd5c3874a3d850c8fe214b8f3ec6b889a873de49d634137346d3e78046ab1ed18"
+        },
+        {
+          "slug": "oter-finance",
+          "ok": true,
+          "hash": "0x0416fc832d4ab9d0973b4eb475ca2fe49114a2654bea4b3d6d3338004a56851a",
+          "seconds": 14,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x0416fc832d4ab9d0973b4eb475ca2fe49114a2654bea4b3d6d3338004a56851a"
+        },
+        {
+          "slug": "swaphood-v3",
+          "ok": true,
+          "hash": "0x2e3ecd5f80326fbc0792799c045304810d9beb729ba72670aad051b684898824",
+          "seconds": 15,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x2e3ecd5f80326fbc0792799c045304810d9beb729ba72670aad051b684898824"
+        },
+        {
+          "slug": "sheriff-v3",
+          "ok": true,
+          "hash": "0xd378bb3a3b31983b2deb2a8e7c56c6ae3501bfa9d51485488b9ca48c0bd63e51",
+          "seconds": 14,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd378bb3a3b31983b2deb2a8e7c56c6ae3501bfa9d51485488b9ca48c0bd63e51"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 66,
+          "chain_diversity": 38,
+          "maturity": 72,
+          "momentum": 63,
+          "tvl_health": 40
+        },
+        "average_score": 57,
+        "balance_wei": 0,
+        "categories_tracked": 12,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 24,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 51,
+        "total_rejected": 49,
+        "total_requests": 57,
+        "verdicts": {
+          "HIGH_RISK": 14,
+          "MODERATE": 15,
+          "SAFE": 22,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-18T05:44:38.399Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "auctus",
+          "ok": true,
+          "hash": "0x5f283dd9a06672243382f8ebae849bd6d620d0f86feae794a521c927e7d1026a",
+          "seconds": 9,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x5f283dd9a06672243382f8ebae849bd6d620d0f86feae794a521c927e7d1026a"
+        },
+        {
+          "slug": "raft",
+          "ok": true,
+          "hash": "0x1dd240d89c6d79f9391999ff561b6bdd9240d5a69f0a744b17516a550d9400cc",
+          "seconds": 11,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x1dd240d89c6d79f9391999ff561b6bdd9240d5a69f0a744b17516a550d9400cc"
+        },
+        {
+          "slug": "stabilize",
+          "ok": true,
+          "hash": "0xdf8c68892f0d2423ca598c5476075413515c6220b1501e2f936a105e5fd88b93",
+          "seconds": 16,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xdf8c68892f0d2423ca598c5476075413515c6220b1501e2f936a105e5fd88b93"
+        },
+        {
+          "slug": "struct-finance",
+          "ok": true,
+          "hash": "0xd5fb3854a354d424dd6fa3daf4daa317b5c57ffc40e9d1c7c64b861f1978e311",
+          "seconds": 16,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xd5fb3854a354d424dd6fa3daf4daa317b5c57ffc40e9d1c7c64b861f1978e311"
+        },
+        {
+          "slug": "vector-finance",
+          "ok": true,
+          "hash": "0x77f9b15be80d6cd500830a365cec64ee4efb1930feaab7760ed8880fe8a11144",
+          "seconds": 22,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x77f9b15be80d6cd500830a365cec64ee4efb1930feaab7760ed8880fe8a11144"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 66,
+          "chain_diversity": 36,
+          "maturity": 74,
+          "momentum": 63,
+          "tvl_health": 37
+        },
+        "average_score": 56,
+        "balance_wei": 0,
+        "categories_tracked": 12,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 24,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 54,
+        "total_rejected": 51,
+        "total_requests": 60,
+        "verdicts": {
+          "HIGH_RISK": 14,
+          "MODERATE": 18,
+          "SAFE": 22,
+          "UNKNOWN": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-18T06:03:28.187Z",
+      "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
+      "network": "studiodev",
+      "results": [
+        {
+          "slug": "auctus",
+          "ok": true,
+          "hash": "0xa46034a9f7ef99badc6bb5b526ec1cf31c10bf552233ea2814be823530612f6f",
+          "seconds": 44,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa46034a9f7ef99badc6bb5b526ec1cf31c10bf552233ea2814be823530612f6f"
+        },
+        {
+          "slug": "raft",
+          "ok": true,
+          "hash": "0x80560a35a331f0860f0ae2ccb6a2fe7fa9245056f5d86387253cf810b6f2885b",
+          "seconds": 21,
+          "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x80560a35a331f0860f0ae2ccb6a2fe7fa9245056f5d86387253cf810b6f2885b"
+        }
+      ],
+      "stats": {
+        "average_dimensions": {
+          "category_risk": 65,
+          "chain_diversity": 35,
+          "maturity": 75,
+          "momentum": 64,
+          "tvl_health": 36
+        },
+        "average_score": 56,
+        "balance_wei": 0,
+        "categories_tracked": 12,
+        "fees_collected_wei": 0,
+        "paused": false,
+        "protocols_tracked": 24,
+        "refunds_owed_wei": 0,
+        "total_analyzed": 56,
+        "total_rejected": 51,
+        "total_requests": 62,
+        "verdicts": {
+          "HIGH_RISK": 14,
+          "MODERATE": 20,
+          "SAFE": 22,
+          "UNKNOWN": 0
+        }
+      }
     }
   ],
   "latest": {
     "oracle": "0x0A87bbebEA59ae55a43c6e721213d4CCF672d1Bc",
-    "at": "2026-09-11T10:14:00.325Z",
+    "at": "2026-09-18T06:03:28.192Z",
     "results": [
       {
-        "slug": "katana-perps",
+        "slug": "auctus",
         "ok": true,
-        "hash": "0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975",
-        "seconds": 25,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xe69e9df5c48ae18eef01e64b1c7114d291b301333090ff842d8371bb92849975"
+        "hash": "0xa46034a9f7ef99badc6bb5b526ec1cf31c10bf552233ea2814be823530612f6f",
+        "seconds": 44,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xa46034a9f7ef99badc6bb5b526ec1cf31c10bf552233ea2814be823530612f6f"
       },
       {
-        "slug": "predictstreet",
+        "slug": "raft",
         "ok": true,
-        "hash": "0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8",
-        "seconds": 18,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x023cf1c22bbb68bd769671be2d3a58e3d59a6a2e3433046d8ad1f435f4873df8"
-      },
-      {
-        "slug": "waterx",
-        "ok": true,
-        "hash": "0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809",
-        "seconds": 15,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x992dd35be1a97952b36d8751c9d3f3eafb388e1c7b49f00840c7194c23f37809"
-      },
-      {
-        "slug": "boar-finance",
-        "ok": true,
-        "hash": "0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43",
-        "seconds": 15,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x3704d042f12a7da3e87d6589d4dbfeb97ef9de578ebb30f363a1a956275f9d43"
-      },
-      {
-        "slug": "oter-finance",
-        "ok": true,
-        "hash": "0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0",
-        "seconds": 14,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x1caa7163175b7061da9348d180b5ea288cddbcc75ae280e5985bd6ea6d12b4b0"
-      },
-      {
-        "slug": "swaphood-v3",
-        "ok": true,
-        "hash": "0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95",
-        "seconds": 14,
-        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0xfd41611e8a8833ec3660632732dd89e1da36764d30d2dbea34119a0242975b95"
+        "hash": "0x80560a35a331f0860f0ae2ccb6a2fe7fa9245056f5d86387253cf810b6f2885b",
+        "seconds": 21,
+        "explorer": "https://explorer-studio-dev.genlayer.com/tx/0x80560a35a331f0860f0ae2ccb6a2fe7fa9245056f5d86387253cf810b6f2885b"
       }
     ],
     "stats": {
       "average_dimensions": {
         "category_risk": 65,
-        "chain_diversity": 41,
-        "maturity": 79,
-        "momentum": 67,
-        "tvl_health": 38
+        "chain_diversity": 35,
+        "maturity": 75,
+        "momentum": 64,
+        "tvl_health": 36
       },
-      "average_score": 59,
+      "average_score": 56,
       "balance_wei": 0,
       "categories_tracked": 12,
       "fees_collected_wei": 0,
       "paused": false,
-      "protocols_tracked": 23,
+      "protocols_tracked": 24,
       "refunds_owed_wei": 0,
-      "total_analyzed": 31,
-      "total_rejected": 42,
-      "total_requests": 35,
+      "total_analyzed": 56,
+      "total_rejected": 51,
+      "total_requests": 62,
       "verdicts": {
-        "HIGH_RISK": 6,
-        "MODERATE": 11,
-        "SAFE": 14,
+        "HIGH_RISK": 14,
+        "MODERATE": 20,
+        "SAFE": 22,
         "UNKNOWN": 0
       }
     }
